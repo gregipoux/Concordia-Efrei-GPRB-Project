@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #05070d;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.08), transparent 22%),
+    #05070d;
+  color: #ffffff;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+button,
+a,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button {
+  transition: all 0.2s ease;
+}
+
+.modal-input {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.85rem 1rem;
+  color: white;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.modal-input::placeholder {
+  color: #71717a;
+}
+
+.modal-input:focus {
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+}
+
+select.modal-input {
+  background-image:
+    linear-gradient(45deg, transparent 50%, #a1a1aa 50%),
+    linear-gradient(135deg, #a1a1aa 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 3rem;
+}
+
+select.modal-input option {
+  background: #0b0f17;
+  color: #ffffff;
+}
+
+select.modal-input:disabled,
+.modal-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.primary-btn {
+  border-radius: 14px;
+  background: #8b5cf6;
+  padding: 0.7rem 1rem;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  background: #7c3aed;
+}
+
+.secondary-btn {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  padding: 0.7rem 1rem;
+  color: #d4d4d8;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: white;
+}
