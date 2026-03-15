@@ -7,7 +7,7 @@ import ProfilePage from '../pages/ProfilePage.vue'
 import SignInPage from '../pages/SignInPage.vue'
 
 const routes = [
-  { path: '/', redirect: '/garage' },
+  { path: '/', redirect: '/signin' },
   { path: '/signin', name: 'signin', component: SignInPage },
   { path: '/board', name: 'board', component: BoardPage },
   { path: '/crew', name: 'crew', component: CrewPage },
