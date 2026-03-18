@@ -58,20 +58,29 @@ onBeforeUnmount(() => {
   <header class="border-b border-white/5 bg-[#070a11]">
     <div class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-8">
       <div class="flex items-center gap-8">
-        <div class="flex items-center gap-3">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-violet-500 text-xs font-bold text-white shadow-lg shadow-violet-900/30">
-            ♦
+        <RouterLink to="/garage" class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 shadow-[0_0_20px_rgba(139,92,246,0.25)] text-white"
+          >
+            💎
           </div>
-          <span class="text-sm font-semibold tracking-wide text-white">The Heist</span>
-        </div>
+
+          <span class="text-xs uppercase tracking-[0.28em] text-zinc-200">
+            The Heist
+          </span>
+        </RouterLink>
 
         <nav class="hidden items-center gap-2 md:flex">
           <RouterLink
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="rounded-lg px-3 py-2 text-sm transition"
-            :class="route.path === item.to ? 'bg-violet-500/15 text-white' : 'text-zinc-500 hover:text-white'"
+            class="rounded-xl px-4 py-2 text-sm transition-all duration-200"
+            :class="
+              route.path === item.to
+                ? 'bg-violet-500/15 text-white'
+                : 'text-zinc-500 hover:text-white'
+            "
           >
             {{ item.label }}
           </RouterLink>
@@ -120,13 +129,13 @@ onBeforeUnmount(() => {
 
         <RouterLink
           to="/profile"
-          class="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500 text-sm font-semibold text-white"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500 text-sm font-semibold text-white shadow-lg shadow-violet-950/30"
         >
           GR
         </RouterLink>
 
         <button
-          class="rounded-lg border border-white/6 px-4 py-2 text-sm text-zinc-300 transition-all duration-200 hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 active:scale-95"
+          class="rounded-xl border border-white/6 px-4 py-2 text-sm text-zinc-300 transition-all duration-200 hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 active:scale-95"
           @click="props.onSignOutClick && props.onSignOutClick()"
         >
           Sign Out

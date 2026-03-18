@@ -9,6 +9,8 @@ import AddVehicleModal from '../components/modals/AddVehicleModal.vue'
 import ConfirmLogoutModal from '../components/modals/ConfirmLogoutModal.vue'
 import EditVehicleModal from '../components/modals/EditVehicleModal.vue'
 import MoveVehicleModal from '../components/modals/MoveVehicleModal.vue'
+import BackgroundGlow from '../components/ui/BackgroundGlow.vue'
+import PageTransition from '../components/ui/PageTransition.vue'
 import { garageStats, garageTabs, garageVehicles } from '../data/garageData'
 
 const activeTab = ref('All vehicles')
@@ -45,28 +47,31 @@ function openMoveModal(vehicle) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#05070d] text-white">
+  <div class="min-h-screen bg-[#05070d] bg-gradient-to-b from-[#06080f] to-[#04060b]">
+    <BackgroundGlow />
     <TopNavbar :on-sign-out-click="openLogoutModal" />
+    
+    <PageTransition>
+      <main class="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
+        <div class="space-y-8">
+          <GarageHeader @add-vehicle="openAddModal" />
 
-    <main class="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
-      <div class="garage-enter space-y-8">
-        <GarageHeader @add-vehicle="openAddModal" />
+          <GarageStats :stats="garageStats" />
 
-        <GarageStats :stats="garageStats" />
+          <FilterTabs
+            :tabs="garageTabs"
+            :active-tab="activeTab"
+            @update:activeTab="activeTab = $event"
+          />
 
-        <FilterTabs
-          :tabs="garageTabs"
-          :active-tab="activeTab"
-          @update:activeTab="activeTab = $event"
-        />
-
-        <GarageTable
-          :vehicles="filteredVehicles"
-          @edit="openEditModal"
-          @move="openMoveModal"
-        />
-      </div>
-    </main>
+          <GarageTable
+            :vehicles="filteredVehicles"
+            @edit="openEditModal"
+            @move="openMoveModal"
+          />
+        </div>
+      </main>
+    </PageTransition>
 
     <AddVehicleModal :show="showAddModal" @close="showAddModal = false" />
     <ConfirmLogoutModal :show="showLogoutModal" @close="showLogoutModal = false" />
@@ -74,20 +79,3 @@ function openMoveModal(vehicle) {
     <MoveVehicleModal :show="showMoveModal" :vehicle="selectedVehicle" @close="showMoveModal = false" />
   </div>
 </template>
-
-<style scoped>
-.garage-enter {
-  animation: garageFade 0.45s ease;
-}
-
-@keyframes garageFade {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>

@@ -6,6 +6,8 @@ import CrewHeader from '../components/crew/CrewHeader.vue'
 import CrewStats from '../components/crew/CrewStats.vue'
 import CrewGrid from '../components/crew/CrewGrid.vue'
 import RecruitModal from '../components/crew/RecruitModal.vue'
+import BackgroundGlow from '../components/ui/BackgroundGlow.vue'
+import PageTransition from '../components/ui/PageTransition.vue'
 import { agents as initialAgents } from '../data/agents.js'
 
 const showLogoutModal = ref(false)
@@ -39,31 +41,34 @@ function addAgent(newAgent) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#05070d] text-white">
+  <div class="min-h-screen bg-[#05070d] bg-gradient-to-b from-[#06080f] to-[#04060b]">
+    <BackgroundGlow />
     <TopNavbar :on-sign-out-click="openLogoutModal" />
 
-    <main class="mx-auto max-w-[1400px] px-6 py-8">
-      <CrewHeader
-        :total-agents="agents.length"
-        :online-agents="onlineAgents"
-        :vault-name="vaultName"
-        @recruit="showModal = true"
-      />
-
-      <div class="mt-6">
-        <CrewStats
+    <PageTransition>
+      <main class="mx-auto max-w-[1400px] px-6 py-8">
+        <CrewHeader
           :total-agents="agents.length"
-          :online-count="onlineAgents"
-          :godfather-count="godfatherCount"
-          :active-missions="activeMissionCount"
+          :online-agents="onlineAgents"
+          :vault-name="vaultName"
+          @recruit="showModal = true"
         />
-      </div>
 
-      <CrewGrid
-        :agents="agents"
-        @recruit="showModal = true"
-      />
-    </main>
+        <div class="mt-6">
+          <CrewStats
+            :total-agents="agents.length"
+            :online-count="onlineAgents"
+            :godfather-count="godfatherCount"
+            :active-missions="activeMissionCount"
+          />
+        </div>
+
+        <CrewGrid
+          :agents="agents"
+          @recruit="showModal = true"
+        />
+      </main>
+    </PageTransition>
 
     <ConfirmLogoutModal :show="showLogoutModal" @close="showLogoutModal = false" />
 
