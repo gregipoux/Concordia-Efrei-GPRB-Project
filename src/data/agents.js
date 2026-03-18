@@ -16,11 +16,11 @@ export const agents = [
     alias: "ghost_rider",
     role: "Agent",
     specialization: "Driver - Extractor",
-    isOnline: true,
+    isOnline: false,
     heist: 2,
     missions: 5,
     roleInHeist: "Driver",
-    status: "Active",
+    status: "Standby",
     recruitmentDate: "2026-02-03"
   },
   {

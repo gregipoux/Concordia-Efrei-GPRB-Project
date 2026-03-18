@@ -1,5 +1,47 @@
+<script setup>
+import { ref } from 'vue'
+
+const emit = defineEmits(['close', 'recruit'])
+
+const form = ref({
+  alias: '',
+  role: '',
+  specialization: '',
+  roleInHeist: '',
+})
+
+const submitForm = () => {
+  if (!form.value.alias || !form.value.role) return
+
+  const newAgent = {
+    id: Date.now(),
+    alias: form.value.alias.trim(),
+    role: form.value.role,
+    specialization: form.value.specialization.trim(),
+    isOnline: false,
+    heist: 0,
+    missions: 0,
+    roleInHeist: form.value.roleInHeist.trim() || form.value.role,
+    status: 'Available',
+    recruitmentDate: new Date().toISOString().slice(0, 10),
+  }
+
+  emit('recruit', newAgent)
+
+  form.value = {
+    alias: '',
+    role: '',
+    specialization: '',
+    roleInHeist: '',
+  }
+}
+</script>
+
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm"
+    @click.self="$emit('close')"
+  >
     <div
       class="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0d0f15] p-6 shadow-2xl"
     >
@@ -12,6 +54,7 @@
         </div>
 
         <button
+          type="button"
           @click="$emit('close')"
           class="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-gray-400 transition hover:bg-white/5 hover:text-white"
         >
@@ -65,12 +108,14 @@
 
       <div class="mt-6 flex gap-3">
         <button
+          type="button"
           @click="$emit('close')"
           class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-sm font-medium text-gray-300 transition hover:bg-white/5 hover:text-white"
         >
           Cancel
         </button>
         <button
+          type="button"
           @click="submitForm"
           class="flex-1 rounded-2xl bg-violet-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-violet-400"
         >
@@ -80,42 +125,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-
-const emit = defineEmits(['close', 'recruit'])
-
-const form = ref({
-  alias: '',
-  role: '',
-  specialization: '',
-  roleInHeist: ''
-})
-
-const submitForm = () => {
-  if (!form.value.alias || !form.value.role) return
-
-  const newAgent = {
-    id: Date.now(),
-    alias: form.value.alias.trim(),
-    role: form.value.role,
-    specialization: form.value.specialization.trim(),
-    isOnline: false,
-    heist: 0,
-    missions: 0,
-    roleInHeist: form.value.roleInHeist.trim() || form.value.role,
-    status: 'Available',
-    recruitmentDate: new Date().toISOString().slice(0, 10)
-  }
-
-  emit('recruit', newAgent)
-
-  form.value = {
-    alias: '',
-    role: '',
-    specialization: '',
-    roleInHeist: ''
-  }
-}
-</script>
