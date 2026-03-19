@@ -20,6 +20,6 @@
 }
 
 .animate-page-enter {
-  animation: page-enter 0.5s ease-out;
+  animation: page-enter 0.4s ease-out;
 }
 </style>

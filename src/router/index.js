@@ -14,6 +14,7 @@ const routes = [
   { path: '/garage', name: 'garage', component: GaragePage },
   { path: '/intel', name: 'intel', component: IntelPage },
   { path: '/profile', name: 'profile', component: ProfilePage },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../pages/NotFound.vue') },
 ]
 
 const router = createRouter({
