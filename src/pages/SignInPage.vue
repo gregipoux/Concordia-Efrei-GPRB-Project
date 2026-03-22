@@ -1,5 +1,10 @@
 <script setup>
+import { useAuthStore } from '../stores/AuthStore.js'
 import SignInCard from '../components/signin/SignInCard.vue'
+const auth = useAuthStore()
+if (!auth.isAuthenticated) {
+  auth.loginDefault()
+}
 </script>
 
 <template>
