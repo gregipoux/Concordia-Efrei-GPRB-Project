@@ -12,7 +12,7 @@ import RetinalScanCard from '../components/profile/RetinalScanCard.vue'
 import FakePassportsCard from '../components/profile/FakePassportsCard.vue'
 import PreferencesCard from '../components/profile/PreferencesCard.vue'
 import DangerZoneCard from '../components/profile/DangerZoneCard.vue'
-import { useAuthStore } from '../stores/authStore.js'
+import { useAuthStore } from '../stores/AuthStore.js'
 
 const auth = useAuthStore()
 const router = useRouter()
