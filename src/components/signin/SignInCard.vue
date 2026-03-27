@@ -10,7 +10,7 @@ const form = reactive({
 })
 
 function handleAuthenticate() {
-  router.push('/garage')
+  router.push('/board')
 }
 
 const slides = [
