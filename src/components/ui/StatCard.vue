@@ -19,6 +19,10 @@ const toneClasses = {
   use: 'text-amber-400',
   dumped: 'text-rose-500',
   sold: 'text-emerald-400',
+  plan: 'text-violet-500',
+  progress: 'text-amber-400',
+  loot: 'text-rose-500',
+  operatives: 'text-emerald-400',
 }
 </script>
 
