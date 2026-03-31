@@ -1,16 +1,30 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/AuthStore.js'
 
 const router = useRouter()
+const auth = useAuthStore()
 
 const form = reactive({
   alias: '',
   retinalScan: '',
 })
 
+const error = ref('')
+
 function handleAuthenticate() {
-  router.push('/garage')
+  error.value = ''
+  if (!form.alias.trim()) {
+    error.value = 'Enter your operative alias.'
+    return
+  }
+  const success = auth.login(form.alias)
+  if (success) {
+    router.push('/board')
+  } else {
+    error.value = 'Unknown alias. Access denied.'
+  }
 }
 
 const slides = [
@@ -150,6 +164,8 @@ const currentSlide = computed(() => slides[activeSlide.value])
               placeholder="••••••••••••"
             />
           </div>
+
+          <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
 
           <button type="submit" class="signin-auth-btn-solid">
             Authenticate →

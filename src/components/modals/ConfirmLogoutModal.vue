@@ -5,7 +5,7 @@ defineProps({
   show: Boolean,
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'confirm'])
 </script>
 
 <template>
@@ -22,6 +22,7 @@ const emit = defineEmits(['close'])
       <button
         type="button"
         class="rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 hover:bg-red-500/15 active:scale-95"
+        @click="emit('confirm')"
       >
         Sign Out
       </button>

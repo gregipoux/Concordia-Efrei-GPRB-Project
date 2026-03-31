@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
   <header class="border-b border-white/5 bg-[#070a11]">
     <div class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-8">
       <div class="flex items-center gap-8">
-        <RouterLink to="/garage" class="flex items-center gap-3">
+        <RouterLink to="/board" class="flex items-center gap-3">
           <div
             class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 shadow-[0_0_20px_rgba(139,92,246,0.25)] text-white"
           >
