@@ -1,0 +1,47 @@
+# ========================================
+# Root .gitignore — rules inherited by all subdirs
+# ========================================
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.history/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment (never commit secrets; keep .env.example only)
+.env
+.env.*
+!.env.example
+
+# Node dependencies (applies to any nested package)
+node_modules/
+
+# Build artifacts
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Misc
+*.pem
+*.key
+*.crt
+.cache/
+.tmp/

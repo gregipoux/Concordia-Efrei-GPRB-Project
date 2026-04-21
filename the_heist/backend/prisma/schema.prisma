@@ -1,0 +1,109 @@
+// MOD8 — Advanced Web Programming — Secure To-Do List
+// 3 statuts imposés (To Do / Doing / Done) mappés 1:1 sur THE_PLAN / IN_PROGRESS / THE_LOOT
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id              Int         @id @default(autoincrement())
+  alias           String      @unique
+  password        String      // bcrypt hash
+  role            AgentRole   @default(AGENT)
+  specialization  String?
+  roleInHeist     String?
+  status          AgentStatus @default(AVAILABLE)
+  isOnline        Boolean     @default(false)
+  heistCount      Int         @default(0)
+  missionsCount   Int         @default(0)
+  recruitmentDate DateTime    @default(now())
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  missions   Mission[]
+  vehicles   Vehicle[]
+  intelFiles IntelFile[]
+}
+
+model Mission {
+  id         Int             @id @default(autoincrement())
+  title      String
+  priority   MissionPriority
+  status     MissionStatus   @default(THE_PLAN)
+  date       DateTime        @default(now())
+  assigneeId Int?
+  assignee   Agent?          @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([status])
+  @@index([assigneeId])
+}
+
+model Vehicle {
+  id            Int           @id @default(autoincrement())
+  name          String
+  year          String
+  color         String
+  colorHex      String
+  plate         String        @unique
+  status        VehicleStatus @default(IN_GARAGE)
+  stashLocation String?
+  driverId      Int?
+  driver        Agent?        @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+}
+
+model IntelFile {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  tags        String   @db.Text // JSON array encoded as string
+  isPinned    Boolean  @default(false)
+  authorId    Int
+  author      Agent    @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPinned])
+  @@index([authorId])
+}
+
+enum AgentRole {
+  GODFATHER
+  AGENT
+}
+
+enum AgentStatus {
+  ACTIVE
+  STANDBY
+  ON_MISSION
+  AVAILABLE
+}
+
+enum MissionPriority {
+  CRITICAL
+  HIGH
+  LOW
+}
+
+enum MissionStatus {
+  THE_PLAN
+  IN_PROGRESS
+  THE_LOOT
+}
+
+enum VehicleStatus {
+  IN_GARAGE
+  IN_USE
+  DUMPED
+  SOLD
+}
