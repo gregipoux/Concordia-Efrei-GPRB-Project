@@ -3,6 +3,10 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import authRoutes from './routes/auth.js'
+import missionsRoutes from './routes/missions.js'
+import vehiclesRoutes from './routes/vehicles.js'
+import intelRoutes from './routes/intel.js'
+import agentsRoutes from './routes/agents.js'
 
 const app = express()
 const PORT = Number(process.env.PORT) || 3001
@@ -21,6 +25,10 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/api/auth', authRoutes)
+app.use('/api/missions', missionsRoutes)
+app.use('/api/vehicles', vehiclesRoutes)
+app.use('/api/intel', intelRoutes)
+app.use('/api/agents', agentsRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ error: 'not_found' })
