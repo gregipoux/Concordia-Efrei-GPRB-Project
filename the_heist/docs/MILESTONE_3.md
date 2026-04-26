@@ -48,7 +48,7 @@ We split the milestone into five lots designed to minimize blocking dependencies
 | **P1** Foundations + Auth | Backend bootstrap, Prisma schema, MySQL migration, seed, `/login` + `/me` + JWT middleware | BELLEPERCHE Grégoire | Done |
 | **P2** CRUD Routes | Routes for Missions / Vehicles / Intel / Agents with validation and authorization | RELUT-VAINQUEUR Xavier | Done (with security audit pass -- see 4.1) |
 | **P3** Frontend Integration | Vite proxy, `services/api.js` + `services/mappers.js`, AuthStore rewrite, page integrations | GUELLUY Eleonore | Done |
-| **P4** Security Hardening | Helmet + CORS + rate limiting on `/login`, IDOR audit on intel POST, timing-safe bcrypt compare, online-status sync on login/logout | MONTENEGRO LOUREIRO Marco-Antonio | Done |
+| **P4** Security Hardening | Helmet + CORS + rate limiting on `/login`, IDOR audit on intel POST, timing-safe bcrypt compare, online-status sync on login/logout, role-based access control on recruitment, integer coercion on validated FK fields, bcrypt upgrade to 6.x for a clean production audit, automated security test suite (7 cases, `node:test` + `supertest`) | MONTENEGRO LOUREIRO Marco-Antonio | Done |
 | **P5** Documentation, Review & Presentation | This document, code-review pass across all lots, 5--7 min presentation script and live demo on April 28 | QUERREC Thomas | In progress |
 
 **• Implementations and Techniques Used:**
@@ -59,6 +59,8 @@ We split the milestone into five lots designed to minimize blocking dependencies
 - **Front-end API service.** `services/api.js` is a small `fetch` wrapper that injects the JWT from `sessionStorage` into every request, parses JSON, and throws a structured `ApiError(status, code, raw)` on non-2xx responses. We expose one module per resource (`authApi`, `missionsApi`, ...) with uniform `list / create / update / remove` methods. Using the same shape everywhere meant the page code stays readable.
 - **Front / back label mapping.** The front-end was built in Milestone 2 with hardcoded human-readable labels (`The Plan`, `Godfather`, `On Mission`). The Prisma enums use `SCREAMING_SNAKE` (`THE_PLAN`, `GODFATHER`, ...). Rather than refactor 30+ Vue components, we added a single `services/mappers.js` that translates both directions. As a side benefit, if we ever swap the back-end stack, only this file changes.
 - **AuthStore (Pinia).** The store persists `{token, agent}` in `sessionStorage` (deliberately not `localStorage`, to limit credential persistence on shared machines). On logout, the store calls `POST /api/auth/logout` (best-effort) so the back-end can flip `isOnline = false` before we drop the token locally.
+- **Role-based authorization.** A second middleware `requireRole(...roles)` checks `req.agent.role` after the JWT has been verified. It is currently mounted on `POST /api/agents` so that only a `GODFATHER` can create or promote an account; an authenticated regular `AGENT` who attempts to recruit gets a `403 forbidden`. Extending this gate to other destructive operations is the natural next step (section 4).
+- **Testable application layout.** The Express app is created in `src/app.js` (middlewares, routes, error handler) while `src/index.js` only calls `app.listen`. This split lets `test/security.test.js` import the app directly through `supertest` without binding a port. The suite (`npm test`, on top of `node:test`) covers seven scenarios: missing bearer header, expired token, malformed token, invalid mission enum payload, invalid vehicle FK type, non-Godfather recruitment attempt and numeric input sanitization. All seven pass on a clean checkout, and the production `npm audit --omit=dev` reports zero vulnerabilities after upgrading `bcrypt` to `^6.0.0`.
 
 **• Database design:**
 
@@ -95,8 +97,13 @@ The brief explicitly asks for secure coding. Below is the list of practices we a
 | 13 | Body size cap | `express.json({ limit: '100kb' })` | Mitigates trivial denial-of-service via oversized requests |
 | 14 | Error opacity | The global error handler returns `{ error: 'internal_error' }` for unexpected exceptions | Prevents leaking stack traces or DB internals to attackers |
 | 15 | Online state sync | `/login` flips `isOnline = true`; `/logout` flips it back | Lets the application reason about active sessions |
+| 16 | Role-based access control on recruitment | `requireRole('GODFATHER')` middleware on `POST /api/agents` -- only the Godfather can create or promote accounts | Without this, any authenticated agent could recruit, including assigning themselves the Godfather role |
+| 17 | Integer coercion on validated body fields | `.toInt()` on `assigneeId`, `driverId`, `heistCount`, `missionsCount` after `express-validator` checks | Prisma receives numeric values rather than strings, eliminating a class of foreign-key and type errors |
+| 18 | Validated optional agent fields | `status`, `isOnline`, `heistCount`, `missionsCount` are whitelisted by `express-validator` before the database insert | Stops a hostile recruit payload from injecting unknown enum values or arbitrary integer ranges |
+| 19 | Up-to-date crypto dependency | `bcrypt` upgraded from `^5.1.1` to `^6.0.0` | Removes the production `npm audit --omit=dev` advisories that came from the old native dependency chain |
+| 20 | Automated security regressions | `test/security.test.js` (`node:test` + `supertest`) -- 7 scenarios covering auth edge cases, input validation and role enforcement | Regressions on the security surface are caught by `npm test` before the next demo |
 
-For the presentation we will live-explain practices **#4 (timing-safe), #7 (rate-limit) and #10 (IDOR fix)** because these are the ones a grader is most likely to probe.
+For the presentation we will live-explain practices **#4 (timing-safe), #7 (rate-limit), #10 (IDOR fix) and #16 (role-based recruitment)** because these are the ones a grader is most likely to probe.
 
 ## 3. Hands-On -- Application Walkthrough
 
@@ -126,7 +133,7 @@ Adding a mission opens `AddMissionModal`, which receives the agents list from th
 
 The Crew page lists every agent in a card grid, with a green dot reflecting `isOnline`. The status was the source of one of our late bugs (section 4.3): we initially never updated `isOnline` on login, so the connected user appeared offline on their own profile. We fixed this by having `POST /api/auth/login` flip the field to `true` and a new `POST /api/auth/logout` flip it back.
 
-The Recruit modal creates a new agent through `POST /api/agents`, with `bcrypt` hashing applied server-side and the alias unique constraint enforced (`P2002 -> 409 alias_taken`). The modal does not (yet) ask for a password; the back-end falls back to the seed password `heist2026` if none is provided. This is a deliberate demo simplification, called out in the recruit form copy ("Send an encrypted invite link"), and the API endpoint *does* accept a custom password if a future UI provides one.
+The Recruit modal creates a new agent through `POST /api/agents`, with `bcrypt` hashing applied server-side and the alias unique constraint enforced (`P2002 -> 409 alias_taken`). The endpoint is gated by the `requireRole('GODFATHER')` middleware so that only a Godfather can recruit; an authenticated regular `AGENT` calling the same endpoint receives `403 forbidden`. The modal does not (yet) ask for a password; the back-end falls back to the seed password `heist2026` if none is provided. This is a deliberate demo simplification, called out in the recruit form copy ("Send an encrypted invite link"), and the API endpoint *does* accept a custom password if a future UI provides one.
 
 ![Crew page: agent cards with role badge, status badge and a presence dot whose colour is bound to `agent.isOnline`. The connected user (`the_godfather`) appears with a green dot once the login + logout endpoints sync the field.](<Crew page.png>)
 
@@ -189,7 +196,7 @@ Two small features make the demo feel finished and give us material to talk abou
 **• Improvements (next steps):**
 
 - **Drag-and-drop on the Kanban** (`vuedraggable`). We currently move missions between columns through the Edit modal; drag-and-drop is what users expect of a modern Kanban and would be a strong demo moment.
-- **Role-based access control** (GODFATHER vs AGENT). The `AgentRole` enum exists; we would add a `requireRole('GODFATHER')` middleware so that, for example, only a Godfather can delete a mission or pin an intel file. This is a clear server-side authorization argument that complements the IDOR fix.
+- **Extend role-based access control** beyond recruitment. The `requireRole(...roles)` middleware is in place and `POST /api/agents` already requires `GODFATHER`. The natural extension is to gate the destructive operations on shared resources (delete a mission, force-pin an intel file, edit a vehicle owned by another agent) so the rest of the API mirrors the same authorization model. This is a clear server-side argument that complements the IDOR fix.
 - **Real-time updates via SSE.** A `GET /api/events` keep-alive endpoint that broadcasts mutations to all connected clients would let two browser windows react to a single click. Strong wow effect, two to three hours of work.
 - **Refresh tokens** (15 min access + 7 d refresh). Standard OAuth-style design. Would reduce the token-exposure window without forcing the user to re-login often.
 - **Dockerization.** A `docker-compose.yml` for MySQL + back-end + front-end so the demo runs identically on any laptop. Removes the "it works on my machine" risk for April 28.
