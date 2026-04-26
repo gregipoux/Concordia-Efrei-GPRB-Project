@@ -67,7 +67,7 @@ router.post(
     body('title').isString().trim().notEmpty().isLength({ max: 255 }),
     body('description').isString().trim().notEmpty(),
     body('tags').isString().trim().notEmpty(),
-    body('authorId').isInt({ min: 1 }),
+    body('isPinned').optional().isBoolean().toBoolean(),
   ],
   async (req, res, next) => {
     try {
@@ -80,7 +80,8 @@ router.post(
           title: req.body.title.trim(),
           description: req.body.description.trim(),
           tags: req.body.tags.trim(),
-          authorId: Number(req.body.authorId),
+          isPinned: req.body.isPinned ?? false,
+          authorId: req.agent.id,
         },
         include: {
           author: {
@@ -101,7 +102,13 @@ router.post(
 
 router.put(
   '/:id',
-  [param('id').isInt({ min: 1 })],
+  [
+    param('id').isInt({ min: 1 }),
+    body('title').optional().isString().trim().notEmpty().isLength({ max: 255 }),
+    body('description').optional().isString().trim().notEmpty(),
+    body('tags').optional().isString().trim().notEmpty(),
+    body('isPinned').optional().isBoolean().toBoolean(),
+  ],
   async (req, res, next) => {
     try {
       if (hasValidationErrors(req, res)) {
@@ -109,19 +116,15 @@ router.put(
       }
 
       const id = Number(req.params.id)
-      const current = await prisma.intelFile.findUnique({
-        where: { id },
-        select: { id: true, isPinned: true },
-      })
-
-      if (!current) {
-        res.status(404).json({ error: 'not_found' })
-        return
-      }
+      const data = {}
+      if (req.body.title !== undefined) data.title = req.body.title.trim()
+      if (req.body.description !== undefined) data.description = req.body.description.trim()
+      if (req.body.tags !== undefined) data.tags = req.body.tags.trim()
+      if (req.body.isPinned !== undefined) data.isPinned = req.body.isPinned
 
       const intelFile = await prisma.intelFile.update({
         where: { id },
-        data: { isPinned: !current.isPinned },
+        data,
         include: {
           author: {
             select: {
@@ -134,6 +137,9 @@ router.put(
 
       res.json({ intelFile })
     } catch (err) {
+      if (err.code === 'P2025') {
+        return res.status(404).json({ error: 'not_found' })
+      }
       next(err)
     }
   }

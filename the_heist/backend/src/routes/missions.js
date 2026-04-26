@@ -98,6 +98,9 @@ router.post(
 
       res.status(201).json({ mission })
     } catch (err) {
+      if (err.code === 'P2003') {
+        return res.status(400).json({ error: 'invalid_assignee' })
+      }
       next(err)
     }
   }
@@ -160,8 +163,10 @@ router.put(
       res.json({ mission })
     } catch (err) {
       if (err.code === 'P2025') {
-        res.status(404).json({ error: 'not_found' })
-        return
+        return res.status(404).json({ error: 'not_found' })
+      }
+      if (err.code === 'P2003') {
+        return res.status(400).json({ error: 'invalid_assignee' })
       }
       next(err)
     }

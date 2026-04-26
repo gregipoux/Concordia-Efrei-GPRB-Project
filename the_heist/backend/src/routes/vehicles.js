@@ -110,6 +110,12 @@ router.post(
 
       res.status(201).json({ vehicle })
     } catch (err) {
+      if (err.code === 'P2002') {
+        return res.status(409).json({ error: 'plate_taken' })
+      }
+      if (err.code === 'P2003') {
+        return res.status(400).json({ error: 'invalid_driver' })
+      }
       next(err)
     }
   }
@@ -193,8 +199,13 @@ router.put(
       res.json({ vehicle })
     } catch (err) {
       if (err.code === 'P2025') {
-        res.status(404).json({ error: 'not_found' })
-        return
+        return res.status(404).json({ error: 'not_found' })
+      }
+      if (err.code === 'P2002') {
+        return res.status(409).json({ error: 'plate_taken' })
+      }
+      if (err.code === 'P2003') {
+        return res.status(400).json({ error: 'invalid_driver' })
       }
       next(err)
     }
