@@ -1,605 +1,217 @@
-# Milestone 3 — Backend Development & Final Presentation
-
-## The Heist — Secure To-Do List Application
-
-**Course:** MOD8 — Advanced Web Programming
-**Term:** Winter 2026 — Concordia University Continuing Education
-**Instructor:** Marcos Sanches
-**Team (5 students):**
-
-- Grégoire BELLEPERCHE
-- Xavier RELUT-VAINQUEUR
-- Eleonore GUELLUY
-- Marco-Antonio MONTENEGRO LOUREIRO
-- Thomas QUERREC
-
-**Repository:** <https://github.com/gregipoux/Concordia-Efrei-GPRB-Project>
-
+---
+title: "MOD8 Project -- Milestone 3"
+author: "Team -- BELLEPERCHE, RELUT-VAINQUEUR, GUELLUY, MONTENEGRO LOUREIRO, QUERREC"
+date: "27/04/2026"
 ---
 
-## Table of Contents
+## 1. Introduction
 
-1. [Project Description](#1-project-description)
-2. [Architecture Overview](#2-architecture-overview)
-3. [Backend Implementation](#3-backend-implementation)
-4. [Database](#4-database)
-5. [Frontend Integration](#5-frontend-integration)
-6. [Secure Coding Practices](#6-secure-coding-practices)
-7. [Project Plan & Task Distribution](#7-project-plan--task-distribution)
-8. [Challenges & Solutions](#8-challenges--solutions)
-9. [Demo & Screenshots](#9-demo--screenshots)
-10. [How to Run Locally](#10-how-to-run-locally)
-11. [Future Improvements](#11-future-improvements)
+**• Project Objectives:**
 
----
+In this Milestone 3 we delivered the back-end half of the **secure To-Do list** required by the assignment, integrated it with the Vue.js front-end built during Milestone 2, and tied the whole thing together as a single full-stack application. Our goals for this milestone were to:
 
-## 1. Project Description
+(1) implement a **Node.js + Express** API on top of **MySQL** that handles user authentication, three task statuses (To Do / Doing / Done) and protected session management with **JWT** tokens.
 
-### 1.1 Problem Statement
+(2) replace every mock data call in the front-end with real HTTP calls against this API, and rewrite the auth flow so that the JWT issued by the back-end is what gates every protected page.
 
-The MOD8 course required us to develop a **secure To-Do List application** with user authentication, three task statuses (To Do / Doing / Done), and protected session management using tokens. The goal: practice full-stack development, teamwork, and secure coding on a single coherent project.
+(3) apply the **secure coding** practices the brief asks for (password hashing with bcrypt, validation, rate limiting, helmet, IDOR audit, etc.) and document each decision so the grader can see why each piece is there.
 
-### 1.2 Solution Overview — Themed as "The Heist"
+(4) keep the work split fairly across the five team members, with one accountable owner per lot and code reviews shared across the team.
 
-To make the project memorable and to give the team a strong narrative for the demo, we themed the To-Do List as a **heist operation** managed by a small crew. The course requirements map cleanly onto the theme:
+(5) produce this report, the demo screenshots and the 5--7 min presentation script, so that the back-end work is testable and reviewable from a single submission.
 
-| Course requirement | Our equivalent |
-|---|---|
-| User accounts with authentication | **Agents** (with alias + password) |
-| To-Do tasks | **Missions** organized on a Kanban board |
-| Three task statuses | **The Plan / In Progress / The Loot** |
-| (extension) Resources | **Vehicles** garage |
-| (extension) Documents | **Intel Files** with pin & search |
+**• Concepts Used:**
 
-The "Vehicle" and "Intel" entities are scope extensions we added to make the demo richer. They re-use the same secure CRUD patterns as Missions and serve as additional surfaces to demonstrate the full-stack integration.
+- **Client / server architecture** with a JSON REST API as the single integration surface between the SPA and the database.
+- **Vue.js 3** (Composition API) with `vue-router` for navigation and `Pinia` for state management (auth + theme).
+- **Tailwind CSS 4** with class-based dark mode (CSS variables), built through Vite.
+- **Node.js + Express** for the HTTP layer, with `helmet`, `cors`, `express-rate-limit` and `express-validator` for hardening.
+- **Prisma ORM** for the database layer instead of the Sequelize taught in class -- we explain that choice in section 2.
+- **JWT (HS256)** for stateless session management, signed with a 256-bit secret stored in `.env`.
+- **bcrypt** (rounds = 10) for password storage. We never store plain passwords.
+- **Themed mapping** between front-end labels (`The Plan / In Progress / The Loot`) and the course-mandated statuses (`To Do / Doing / Done`). The mapping is enforced both in the Prisma enum and in a single `mappers.js` module on the front.
 
-### 1.3 Status Mapping (mandatory clarification for grading)
+## 2. Methodology
 
-The frontend uses themed labels that map **1:1** onto the three statuses required by the assignment:
+This section explains how we organized the work, how the code is structured and the techniques we used. Section 3 then walks through the actual application surfaces with screenshots.
 
-| Frontend label | Course-mandated status |
-|---|---|
-| **The Plan** | To Do |
-| **In Progress** | Doing |
-| **The Loot** | Done |
+**• Code structure:**
 
-This mapping is enforced both in the Prisma enum (`THE_PLAN`, `IN_PROGRESS`, `THE_LOOT`) and in the bidirectional mapper that translates between API and UI.
+The repository is a small monorepo at `the_heist/` with two siblings: `frontend/` (Vue + Vite) and `backend/` (Express + Prisma). The back-end is split by responsibility -- `src/middleware/auth.js` for the JWT verification, `src/lib/prisma.js` for the database client singleton, and one file per resource under `src/routes/` (auth, missions, vehicles, intel, agents). The front-end follows the same logic: `src/services/` for the cross-cutting concerns (HTTP wrapper + enum mapper), `src/stores/` for Pinia stores (auth + theme), `src/pages/` for the routed views and `src/components/` grouped by feature (board / crew / garage / intel / modals / profile / ui). This separation made the integration between P2 and P3 noticeably easier than it would have been with everything under a single folder.
 
----
+**• Team task distribution:**
 
-## 2. Architecture Overview
-
-### 2.1 Stack
-
-| Layer | Technology | Mandated by course? |
-|---|---|---|
-| Front-end | Vue.js 3 (Composition API) + Vite | Yes (Vue.js) |
-| State management | Pinia | Free choice |
-| Routing | Vue Router 4 | Free choice |
-| CSS | Tailwind CSS 4 | Yes (one of Vanilla / Bootstrap / Tailwind) |
-| Icons | lucide-vue-next | Free choice |
-| Notifications | vue-sonner (toasts) | Free choice |
-| Back-end | Node.js + Express 4 | Yes (Node.js) |
-| ORM | Prisma 5 | Free choice (course taught Sequelize — see §2.3) |
-| Database | MySQL 8 | Yes |
-| Authentication | JWT + bcrypt | Yes (token-based session) |
-| Hardening | helmet, cors, express-rate-limit, express-validator | Recommended (secure coding) |
-| Versioning | Git + GitHub | Yes |
-
-### 2.2 High-level Diagram
-
-```
-┌─────────────────────────────┐    /api/* (Vite proxy)    ┌─────────────────────────────┐
-│  Vue 3 SPA (port 5173)      │ ◄──── HTTPS + JSON ──────►│  Express API (port 3001)    │
-│                             │      Bearer JWT header    │                             │
-│  ┌───────────────────────┐  │                           │  ┌───────────────────────┐  │
-│  │ Pages                 │  │                           │  │ Routes                │  │
-│  │  - SignIn             │  │                           │  │  - /api/auth          │  │
-│  │  - Board (Kanban)     │  │                           │  │  - /api/missions      │  │
-│  │  - Crew               │  │                           │  │  - /api/vehicles      │  │
-│  │  - Garage             │  │                           │  │  - /api/intel         │  │
-│  │  - Intel              │  │                           │  │  - /api/agents        │  │
-│  │  - Profile            │  │                           │  └───────────────────────┘  │
-│  └───────────────────────┘  │                           │             │               │
-│             │               │                           │  ┌──────────▼────────────┐  │
-│  ┌──────────▼────────────┐  │                           │  │ Middleware            │  │
-│  │ services/api.js       │  │                           │  │  - helmet             │  │
-│  │ services/mappers.js   │  │                           │  │  - cors               │  │
-│  └──────────┬────────────┘  │                           │  │  - express.json       │  │
-│             │               │                           │  │  - requireAuth (JWT)  │  │
-│  ┌──────────▼────────────┐  │                           │  │  - express-validator  │  │
-│  │ Pinia stores          │  │                           │  │  - rate-limit (login) │  │
-│  │  - AuthStore (JWT)    │  │                           │  └──────────┬────────────┘  │
-│  │  - ThemeStore         │  │                           │             │               │
-│  └───────────────────────┘  │                           │  ┌──────────▼────────────┐  │
-└─────────────────────────────┘                           │  │ Prisma Client (ORM)   │  │
-                                                          │  └──────────┬────────────┘  │
-                                                          └─────────────┼───────────────┘
-                                                                        │
-                                                                        ▼
-                                                          ┌──────────────────────────┐
-                                                          │  MySQL 8 (the_heist DB)  │
-                                                          └──────────────────────────┘
-```
-
-### 2.3 Why Prisma over Sequelize
-
-The course curriculum (Class 7 — April 7) introduced **Sequelize** as the ORM for Node.js + MySQL. We made the deliberate choice to use **Prisma** instead, for the following reasons:
-
-1. **Modern declarative schema** (`schema.prisma`) — single source of truth for models, enums, relations, migrations.
-2. **Type-safe generated client** — autocompletion and compile-time checks reduce a class of bugs that Sequelize allows at runtime.
-3. **Built-in migration tooling** (`prisma migrate dev`, `prisma migrate reset`) — lighter than handcrafting Sequelize migrations.
-4. **Parameterized queries by construction** — Prisma never builds SQL strings from raw input, which provides automatic SQL-injection protection equivalent to (or stronger than) Sequelize's prepared statements.
-
-We acknowledge this is a deviation from the curriculum. The trade-off is that one team member spent a few extra hours on Prisma's documentation; in exchange, the team avoided a class of N+1 query bugs and gained type-safe model access. The MySQL database itself is unchanged; only the access layer differs.
-
----
-
-## 3. Backend Implementation
-
-### 3.1 Server (Express)
-
-`backend/src/index.js` configures a minimal Express app:
-
-- `helmet()` — sets safe HTTP response headers (X-Content-Type-Options, X-Frame-Options, etc.)
-- `cors({ origin: process.env.CORS_ORIGIN, credentials: true })` — restricts which origins may call the API
-- `express.json({ limit: '100kb' })` — parses JSON bodies, caps payload size to mitigate DoS by oversized requests
-- Mounts route modules under `/api/auth`, `/api/missions`, `/api/vehicles`, `/api/intel`, `/api/agents`
-- Catch-all 404 handler + global error handler that hides internal errors from the client
-
-### 3.2 Authentication Flow
-
-The authentication uses **JWT + bcrypt** as required by the secure session brief.
-
-**Login (`POST /api/auth/login`)**
-
-1. Validate body (`alias`, `password`) with `express-validator`.
-2. Look up the agent by alias.
-3. **Timing-safe** bcrypt compare: if the alias does not exist, we still run `bcrypt.compare` against a precomputed dummy hash. This keeps the response time identical whether or not the alias exists, blocking timing attacks that would otherwise leak which aliases are real.
-4. On success, update `isOnline = true` in the database for the agent.
-5. Sign a JWT with `{ sub: agent.id, alias, role }`, secret = `JWT_SECRET` (256-bit, stored in `.env`, gitignored), expiry = 12 h.
-6. Return `{ token, agent: { id, alias, role, ..., isOnline: true } }`.
-7. **Rate-limited**: 10 attempts per 15 min per IP (returns HTTP 429 beyond that), via `express-rate-limit`.
-
-**Logout (`POST /api/auth/logout`, requires JWT)**
-
-1. Verify JWT via the `requireAuth` middleware.
-2. Update `isOnline = false` in the database for `req.agent.id`.
-3. Return `{ ok: true }`. The frontend then clears its session storage.
-
-**Auth check (`GET /api/auth/me`, requires JWT)**
-
-Returns the current agent (decoded from the JWT). Used by the frontend to rehydrate the user state after a page reload.
-
-**Middleware (`requireAuth`)**
-
-- Reads `Authorization: Bearer <token>` from the request header.
-- Verifies the JWT with `process.env.JWT_SECRET`. Distinguishes `token_expired` from `invalid_token`.
-- Re-fetches the agent from the database to ensure they still exist and to attach the freshest agent data to `req.agent`.
-- All routes except `/health` and `POST /api/auth/login` are protected by this middleware.
-
-### 3.3 API Endpoints (Summary)
-
-| Method | Route | Auth | Description |
-|---|---|---|---|
-| GET | `/health` | no | Health check |
-| POST | `/api/auth/login` | no | `{alias, password}` → `{token, agent}` |
-| POST | `/api/auth/logout` | yes | Marks agent offline |
-| GET | `/api/auth/me` | yes | Returns current agent |
-| GET | `/api/missions?status=` | yes | List missions, filter by Kanban column |
-| POST | `/api/missions` | yes | Create mission |
-| PUT | `/api/missions/:id` | yes | Partial update (title / priority / status / assignee) |
-| DELETE | `/api/missions/:id` | yes | Delete mission |
-| GET | `/api/vehicles?status=` | yes | List vehicles, filter by status |
-| POST | `/api/vehicles` | yes | Create vehicle |
-| PUT | `/api/vehicles/:id` | yes | Partial update + business rule (DUMPED → driver=null) |
-| DELETE | `/api/vehicles/:id` | yes | Delete vehicle |
-| GET | `/api/intel?search=` | yes | List intel files (pinned first), text search on title/description |
-| POST | `/api/intel` | yes | Create intel — `authorId` injected from JWT, never read from body |
-| PUT | `/api/intel/:id` | yes | Partial update (title / description / tags / isPinned) |
-| DELETE | `/api/intel/:id` | yes | Delete intel |
-| GET | `/api/agents` | yes | List agents (public profile fields, no password) |
-| POST | `/api/agents` | yes | Recruit a new agent (bcrypt + alias unique) |
-
-### 3.4 Validation & Error Handling
-
-Every route validates its inputs with `express-validator`. Prisma error codes are normalized to consistent HTTP responses:
-
-| HTTP | Error code returned | Cause |
-|---|---|---|
-| 400 | `invalid_input` | Validator rejected the body / params / query |
-| 400 | `invalid_assignee` | `assigneeId` does not exist in DB (Prisma `P2003`) |
-| 400 | `invalid_driver` | `driverId` does not exist in DB (Prisma `P2003`) |
-| 401 | `invalid_credentials` | Wrong alias or password |
-| 401 | `invalid_token` / `token_expired` | JWT failed verification |
-| 404 | `not_found` | Resource missing (Prisma `P2025`) |
-| 409 | `alias_taken` | Recruit alias already exists (Prisma `P2002`) |
-| 409 | `plate_taken` | Vehicle plate already exists (Prisma `P2002`) |
-| 429 | (rate-limit message) | Too many login attempts |
-
-This consistent contract lets the frontend display user-friendly messages without parsing free-text errors.
-
----
-
-## 4. Database
-
-### 4.1 Entity-Relationship Diagram
-
-```
-                                  ┌────────────────────────────┐
-                                  │ Agent                      │
-                                  ├────────────────────────────┤
-                                  │ id            INT  PK      │
-                                  │ alias         STRING UNIQUE│
-                                  │ password      STRING (hash)│
-                                  │ role          AgentRole    │
-                                  │ specialization STRING?     │
-                                  │ roleInHeist   STRING?      │
-                                  │ status        AgentStatus  │
-                                  │ isOnline      BOOL         │
-                                  │ heistCount    INT          │
-                                  │ missionsCount INT          │
-                                  │ recruitmentDate DATETIME   │
-                                  │ createdAt     DATETIME     │
-                                  │ updatedAt     DATETIME     │
-                                  └────────────┬───────────────┘
-                                               │
-                       ┌───────────────────────┼─────────────────────────┐
-                       │                       │                         │
-            (assignee) │ 1                     │ 1 (driver)         (author) │ 1
-                       │                       │                         │
-                       │ 0..*                  │ 0..*                    │ 0..*
-            ┌──────────▼──────────────┐   ┌───▼─────────────────────┐   ┌▼──────────────────────────┐
-            │ Mission                 │   │ Vehicle                 │   │ IntelFile                 │
-            ├─────────────────────────┤   ├─────────────────────────┤   ├───────────────────────────┤
-            │ id          INT PK      │   │ id          INT PK      │   │ id           INT PK       │
-            │ title       STRING      │   │ name        STRING      │   │ title        STRING       │
-            │ priority    Enum        │   │ year        STRING      │   │ description  TEXT         │
-            │ status      Enum        │   │ color       STRING      │   │ tags         TEXT (JSON)  │
-            │ date        DATETIME    │   │ colorHex    STRING      │   │ isPinned     BOOL         │
-            │ assigneeId  INT? FK     │   │ plate       STRING UQ   │   │ authorId     INT  FK      │
-            │ createdAt   DATETIME    │   │ status      Enum        │   │ createdAt    DATETIME     │
-            │ updatedAt   DATETIME    │   │ stashLocation STRING?   │   │ updatedAt    DATETIME     │
-            └─────────────────────────┘   │ driverId    INT? FK     │   └───────────────────────────┘
-                                          │ createdAt   DATETIME    │
-                                          │ updatedAt   DATETIME    │
-                                          └─────────────────────────┘
-
-Enums:
-  AgentRole       = { GODFATHER, AGENT }
-  AgentStatus     = { ACTIVE, STANDBY, ON_MISSION, AVAILABLE }
-  MissionPriority = { CRITICAL, HIGH, LOW }
-  MissionStatus   = { THE_PLAN, IN_PROGRESS, THE_LOOT }   ← maps to (To Do, Doing, Done)
-  VehicleStatus   = { IN_GARAGE, IN_USE, DUMPED, SOLD }
-
-On-delete rules:
-  Mission.assignee  → SetNull (deleting an Agent unassigns their missions)
-  Vehicle.driver    → SetNull (deleting an Agent removes them from any vehicle)
-  IntelFile.author  → restrict by default (we never delete an author with active intel)
-```
-
-> **Note on tags:** MySQL has no native array type, so we store `IntelFile.tags` as a JSON-encoded string (e.g. `'["Classified","Urgent"]'`). The frontend mapper parses it on read and stringifies it on write so that the UI manipulates a normal JavaScript array.
-
-### 4.2 Prisma Schema (excerpt)
-
-```prisma
-model Agent {
-  id              Int         @id @default(autoincrement())
-  alias           String      @unique
-  password        String      // bcrypt hash, never returned by the API
-  role            AgentRole   @default(AGENT)
-  specialization  String?
-  roleInHeist     String?
-  status          AgentStatus @default(AVAILABLE)
-  isOnline        Boolean     @default(false)
-  heistCount      Int         @default(0)
-  missionsCount   Int         @default(0)
-  recruitmentDate DateTime    @default(now())
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  missions   Mission[]
-  vehicles   Vehicle[]
-  intelFiles IntelFile[]
-}
-
-model Mission {
-  id         Int             @id @default(autoincrement())
-  title      String
-  priority   MissionPriority
-  status     MissionStatus   @default(THE_PLAN)
-  date       DateTime        @default(now())
-  assigneeId Int?
-  assignee   Agent?          @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
-
-  @@index([status])
-  @@index([assigneeId])
-}
-```
-
-(Full schema in `the_heist/backend/prisma/schema.prisma` in the repository.)
-
-### 4.3 Seed Data
-
-The `prisma/seed.js` script populates the database with a coherent demo scenario:
-
-- **4 agents** (`the_godfather`, `ghost_rider`, `shadow_fox`, `iron_wraith`) — common password `heist2026`, hashed with bcrypt rounds=10
-- **7 missions** distributed across the three Kanban columns
-- **5 vehicles** with varied statuses (In Garage / In Use / Dumped / Sold)
-- **6 intel files** including 1 pinned
-
-Every seed entry uses an `upsert` keyed on a natural unique field (alias for agents, plate for vehicles). This makes the seed **idempotent** — re-running it does not create duplicates and lets every team member reset their environment with a single command.
-
----
-
-## 5. Frontend Integration
-
-### 5.1 Vite Proxy
-
-`frontend/vite.config.js` proxies all `/api/*` calls to the backend at `http://localhost:3001`. This avoids CORS issues during development and lets the frontend fetch with relative URLs.
-
-### 5.2 API Service Layer
-
-To keep components clean and to centralize the cross-cutting concerns of HTTP / auth / mapping, the frontend has a single `services/` layer:
-
-- **`services/api.js`** — `fetch` wrapper that injects the JWT from `sessionStorage` into every request, parses JSON responses, and throws a structured `ApiError(status, code, raw)` on non-2xx responses. Exposes one module per resource (`authApi`, `missionsApi`, `vehiclesApi`, `intelApi`, `agentsApi`) with uniform `list / create / update / remove` methods.
-
-- **`services/mappers.js`** — bidirectional mapping between Prisma enums (`THE_PLAN`, `GODFATHER`, ...) and the human-readable Title-Case labels used historically in the frontend (`The Plan`, `Godfather`, ...). Also handles JSON tag parsing, date formatting, and computed initials. Centralizing this mapping in one file means we never had to touch the existing UI components when wiring them to the API — they keep using the labels they were built with.
-
-### 5.3 AuthStore (Pinia)
-
-`stores/AuthStore.js` is the single source of truth for the authenticated session. It exposes:
-
-- `currentAgent`, `token`, `isAuthenticated`, `loading`, `error`
-- `login(alias, password)` — calls `POST /api/auth/login`, persists `{token, agent}` in `sessionStorage`
-- `logout()` — calls `POST /api/auth/logout` (best-effort) so the backend can mark the agent offline, then clears local state
-- `refreshMe()` — calls `GET /api/auth/me` to rehydrate the agent after a page reload, and auto-logs out if the token is no longer valid
-
-We deliberately use **`sessionStorage`** rather than `localStorage`: the token is wiped when the browser tab closes, which limits the window of exposure if the user forgets to log out on a shared machine.
-
-### 5.4 ThemeStore (Pinia)
-
-A second store manages the **light / dark theme toggle** (see §11). Default is dark; the user's preference is persisted in `localStorage` and re-applied to the `<html>` element on page load via an inline script in `index.html` (this prevents the "flash of wrong theme" that a Vue-only solution would cause).
-
-### 5.5 Pages and Components
-
-| Page | Purpose | Notable interactions |
-|---|---|---|
-| **SignIn** | Entry point — alias + retinal scan (password) | Async login, error mapping by code, rate-limit handled |
-| **Board** | Kanban with three columns (The Plan / In Progress / The Loot) | Create / edit / delete missions, hover actions on cards |
-| **Crew** | Grid of agents with online status | Recruit modal, online dot reflects the DB state |
-| **Garage** | Table of vehicles with filter tabs | Add / Edit / Move modals, business rule for DUMPED status |
-| **Intel** | Card list of intel files (pinned first) + search | Toggle pin (optimistic update with rollback), edit / delete |
-| **Profile** | Agent identity, fake passports (sessions), preferences, danger zone | Logout flow goes through DangerZone |
-
-### 5.6 UX Polish
-
-- **Toast notifications** (vue-sonner) on every create / update / delete and on auth events. Success toasts in green, errors in red.
-- **Loading and error states** on every page during the initial fetch.
-- **Optimistic updates with rollback** on intel pin toggle for instant feedback.
-- **Hover actions** on Mission and Intel cards to reveal Edit / Delete buttons without cluttering the default view.
-- **Light / dark theme toggle** in the navbar (Sun / Moon icon).
-
----
-
-## 6. Secure Coding Practices
-
-The brief explicitly required "secure coding practices". Here is what we implemented and why each item matters:
-
-| # | Practice | Implementation | Why it matters |
-|---|---|---|---|
-| 1 | Password hashing | `bcrypt` rounds=10 on every stored password (seed + recruit) | Stored hashes cannot be reversed; `cost=10` is a sensible 2026 default |
-| 2 | JWT signing | HS256 with a 256-bit secret in `.env` (gitignored) | Tokens cannot be forged without the secret |
-| 3 | Token expiry | 12 hours | Limits the window of exposure if a token leaks |
-| 4 | Timing-safe login | bcrypt-compare against a dummy hash when the alias is unknown | Prevents enumeration of valid aliases via response-time analysis |
-| 5 | HTTP headers | `helmet` middleware | Defense-in-depth against XSS, clickjacking, MIME sniffing |
-| 6 | CORS | Restricted to `CORS_ORIGIN` from `.env` | Prevents arbitrary websites from calling our API on behalf of the user |
-| 7 | Rate limiting | `express-rate-limit` on `/login` (10 / 15 min) | Brute-force resistance |
-| 8 | Input validation | `express-validator` on every route | Guarantees shape & types before they reach Prisma |
-| 9 | SQL injection | Prisma's parameterized queries — we never build raw SQL | Eliminates SQL-injection vector by construction |
-| 10 | **IDOR fix on `/api/intel` POST** | `authorId` is injected from the verified JWT (`req.agent.id`), never read from the body | Without this, any authenticated agent could post intel under another agent's identity |
-| 11 | Sensitive storage | JWT in `sessionStorage` (cleared when the tab closes), not `localStorage` | Limits the persistence of credentials on shared machines |
-| 12 | Secret management | `.env` is in every relevant `.gitignore`; only `.env.example` is committed | Secrets never leak into the Git history |
-| 13 | Body size cap | `express.json({ limit: '100kb' })` | Mitigates trivial denial-of-service via oversized requests |
-| 14 | Error opacity | The global error handler returns `{ error: 'internal_error' }` for unexpected exceptions | Prevents leaking stack traces or DB internals to attackers |
-| 15 | Online state sync | `/login` flips `isOnline=true`; `/logout` flips it back | Lets the application reason about active sessions and gives the operator a way to revoke (planned) |
-
-For the demo, we will live-explain practices **#4 (timing-safe), #7 (rate-limit), and #10 (IDOR fix)** as they are the ones a graders will likely probe.
-
----
-
-## 7. Project Plan & Task Distribution
-
-### 7.1 Lots
-
-The team divided the Milestone 3 work into five lots designed to minimize blocking dependencies. Each lot has a single owner accountable for delivery; reviews and pair-programming were shared across the team.
+We split the milestone into five lots designed to minimize blocking dependencies. Each lot has a single owner accountable for delivery; reviews and pair-programming were shared across the team.
 
 | Lot | Scope | Owner | Status |
 |---|---|---|---|
-| **P1** Foundations + Auth | Backend bootstrap, Prisma schema, MySQL migration, seed, `/login` + `/me` + JWT middleware, `requireAuth` middleware | **Grégoire BELLEPERCHE** | ✅ Done |
-| **P2** CRUD Routes | Routes for Missions / Vehicles / Intel / Agents with validation, authorization, and Prisma error normalization | **Xavier RELUT-VAINQUEUR** | ✅ Done (with security audit pass — see §8.2) |
-| **P3** Frontend Integration | Vite proxy, `services/api.js` + `services/mappers.js`, AuthStore rewrite (real JWT), page integrations (Board, Garage, Intel, Crew) | **Eleonore GUELLUY** | ✅ Done |
-| **P4** Security Hardening | Helmet + CORS + rate limiting on `/login`, input validation across the API, IDOR audit on intel POST, timing-safe bcrypt compare, online-status sync on login/logout | **Marco-Antonio MONTENEGRO LOUREIRO** | ✅ Done |
-| **P5** Documentation, Review & Presentation | This Milestone 3 document, code-review pass across all lots, 5–7 min presentation script and live demo on April 28 | **Thomas QUERREC** | 🔄 In progress |
+| **P1** Foundations + Auth | Backend bootstrap, Prisma schema, MySQL migration, seed, `/login` + `/me` + JWT middleware | BELLEPERCHE Grégoire | Done |
+| **P2** CRUD Routes | Routes for Missions / Vehicles / Intel / Agents with validation and authorization | RELUT-VAINQUEUR Xavier | Done (with security audit pass -- see 4.1) |
+| **P3** Frontend Integration | Vite proxy, `services/api.js` + `services/mappers.js`, AuthStore rewrite, page integrations | GUELLUY Eleonore | Done |
+| **P4** Security Hardening | Helmet + CORS + rate limiting on `/login`, IDOR audit on intel POST, timing-safe bcrypt compare, online-status sync on login/logout | MONTENEGRO LOUREIRO Marco-Antonio | Done |
+| **P5** Documentation, Review & Presentation | This document, code-review pass across all lots, 5--7 min presentation script and live demo on April 28 | QUERREC Thomas | In progress |
 
-### 7.2 Timeline (since Milestone 2)
+**• Implementations and Techniques Used:**
 
-```
-Apr 21 ──── Apr 23 ──── Apr 25 ──── Apr 27 ──── Apr 28
-   │            │            │            │            │
-P1: ████████
-P2:       ████████████
-P3:                ████████████████
-P4:                       ████████████
-P5: ─────────────────────────────────────────► Submission
-                                            │
-                                            └─► Apr 28: Final presentation
-```
+- **Authentication.** `POST /api/auth/login` validates the body with `express-validator`, fetches the agent by alias, and runs `bcrypt.compare`. To block alias-enumeration via timing attacks, when the alias does not exist we still run the compare against a precomputed dummy hash so the response time is identical in both branches. On success we update `isOnline = true` in the DB, sign a 12 h JWT with `{ sub, alias, role }` and return it. The login is rate-limited to 10 attempts / 15 min via `express-rate-limit`.
+- **JWT middleware.** `requireAuth` reads the `Authorization: Bearer <token>` header, verifies the signature with `process.env.JWT_SECRET`, distinguishes `token_expired` from `invalid_token`, and re-fetches the agent from the database to attach the freshest fields to `req.agent`. Every route except `/health` and `/login` is behind this middleware.
+- **CRUD pattern.** Every resource (`missions`, `vehicles`, `intel`, `agents`) follows the same shape: validators on the route, `prisma.<model>.findMany / create / update / delete`, partial updates on PUT, and Prisma error normalization at the catch level (`P2002 -> 409 alias_taken / plate_taken`, `P2003 -> 400 invalid_assignee / invalid_driver`, `P2025 -> 404 not_found`). This consistency lets the front-end display user-friendly messages without parsing free-text errors.
+- **Front-end API service.** `services/api.js` is a small `fetch` wrapper that injects the JWT from `sessionStorage` into every request, parses JSON, and throws a structured `ApiError(status, code, raw)` on non-2xx responses. We expose one module per resource (`authApi`, `missionsApi`, ...) with uniform `list / create / update / remove` methods. Using the same shape everywhere meant the page code stays readable.
+- **Front / back label mapping.** The front-end was built in Milestone 2 with hardcoded human-readable labels (`The Plan`, `Godfather`, `On Mission`). The Prisma enums use `SCREAMING_SNAKE` (`THE_PLAN`, `GODFATHER`, ...). Rather than refactor 30+ Vue components, we added a single `services/mappers.js` that translates both directions. As a side benefit, if we ever swap the back-end stack, only this file changes.
+- **AuthStore (Pinia).** The store persists `{token, agent}` in `sessionStorage` (deliberately not `localStorage`, to limit credential persistence on shared machines). On logout, the store calls `POST /api/auth/logout` (best-effort) so the back-end can flip `isOnline = false` before we drop the token locally.
 
-### 7.3 Group Participation
+**• Database design:**
 
-Every commit on the GitHub repository is signed by its author. The `git log` shows a balanced contribution distribution that the instructor can verify directly. Branch protection on `main` and pull-request reviews ensured at least two pairs of eyes on every merge.
+The schema covers four entities -- `Agent`, `Mission`, `Vehicle`, `IntelFile` -- with five enums (`AgentRole`, `AgentStatus`, `MissionPriority`, `MissionStatus`, `VehicleStatus`). The full schema is in `backend/prisma/schema.prisma`; the diagram below was generated automatically from that schema using the `prisma-erd-generator` package, so it is guaranteed to stay in sync with the code.
 
----
+![Database entity-relationship diagram, generated from `backend/prisma/schema.prisma`. The four entities (Agent, Mission, Vehicle, IntelFile) and their five enums are shown. Foreign-key columns (`assigneeId`, `driverId`, `authorId`) are nullable on the dependent side so that deleting an agent does not cascade-delete their missions or vehicles.](erd.png)
 
-## 8. Challenges & Solutions
+`MissionStatus` is the enum that carries the course-mandated three statuses. The mapping `THE_PLAN <-> To Do`, `IN_PROGRESS <-> Doing`, `THE_LOOT <-> Done` is documented and respected by the mapper. Tags on `IntelFile` are stored as a JSON-encoded `TEXT` string because MySQL has no native array type -- the front-end mapper parses on read and stringifies on write so the UI manipulates a normal JavaScript array.
 
-### 8.1 Frontend ↔ Backend label mismatch
+`prisma/seed.js` populates the database with 4 agents (common password `heist2026`), 7 missions, 5 vehicles and 6 intel files. The script uses `upsert` keyed on natural unique fields (alias, plate), so re-running it never creates duplicates -- any team member can reset their environment with one command.
 
-**Problem.** The frontend was developed in Milestone 2 with hardcoded human-readable labels (`The Plan`, `Godfather`, `On Mission`). The Prisma enums conventionally use `SCREAMING_SNAKE_CASE` (`THE_PLAN`, `GODFATHER`, `ON_MISSION`). A naive integration would have required refactoring 30+ Vue components to use the enum strings.
+**• Why Prisma and not Sequelize:**
 
-**Solution.** A single `services/mappers.js` file translates between the two conventions in both directions. Components keep their original labels; the API exchanges enum values; the mapping is the only boundary that knows about both. Bonus: if we ever swap the backend, only the mapper changes.
+The course (Class 7, April 7) introduced **Sequelize** as the ORM. We deliberately chose **Prisma** instead, for three reasons: (1) the declarative `schema.prisma` file is a single source of truth for models, enums and migrations, easier to read in a code review than a folder of Sequelize model files; (2) the generated client is type-checked, which catches a class of bugs at compile time rather than at runtime; (3) Prisma's parameterized queries provide the same SQL-injection protection as Sequelize's prepared statements. The cost was a few extra hours of documentation reading from one team member; the MySQL database itself is unchanged. We acknowledge this is a deviation from the curriculum and we are happy to defend it during the presentation.
 
-### 8.2 IDOR vulnerability discovered during the security audit
+**• Secure coding decisions:**
 
-**Problem.** The first version of `POST /api/intel` accepted `authorId` from the request body. An authenticated agent could therefore create intel files under another agent's identity (an IDOR — Insecure Direct Object Reference).
+The brief explicitly asks for secure coding. Below is the list of practices we applied and why each one matters in our specific context.
 
-**Solution.** Removed `authorId` from the validator and the body. The route now uses `req.agent.id` from the JWT — the server is the only authority that decides who the author is. We also took the opportunity to add normalized handling of Prisma's foreign-key (P2003) and uniqueness (P2002) errors across all routes.
-
-### 8.3 Online status not synced with session
-
-**Problem.** Initially, the `Agent.isOnline` flag was only set by the seed script and never updated. A logged-in user appeared "Offline" on their own profile.
-
-**Solution.** `POST /api/auth/login` now updates `isOnline=true` after successful authentication. We also added `POST /api/auth/logout` (auth-protected) that flips it back to `false`. The frontend `AuthStore.logout()` calls this endpoint as a best-effort before clearing the local token.
-
-### 8.4 Vehicle business rules
-
-**Problem.** A "Dumped" vehicle should not have a driver assigned, and a vehicle that is "In Use" or "Sold" should not have a stash location. The frontend modals tried to enforce this, but the backend would have accepted any combination.
-
-**Solution.** The backend `PUT /api/vehicles/:id` route enforces the rule server-side: when the new status is `DUMPED`, `driverId` is forced to `null` regardless of what the client sent. This is the correct place to enforce a business invariant.
-
-### 8.5 No native arrays in MySQL
-
-**Problem.** `IntelFile.tags` is conceptually a list of strings (`['Classified', 'Urgent']`). MySQL has no native array column.
-
-**Solution.** Stored as a JSON-encoded `TEXT` column. The mapper parses on read and stringifies on write. For our scope (handful of tags per file, tags chosen from a fixed vocabulary), this is simpler than a join table and performs adequately.
-
----
-
-## 9. Demo & Screenshots
-
-> _[TEAM: insert screenshots here. Suggested order, taken from the live application after `npm run seed`:]_
->
-> 1. **SignIn page** — alias + retinal scan inputs, dramatic dark gradient
-> 2. **Board (Kanban)** — three columns populated with seeded missions, hover state showing Edit / Delete buttons
-> 3. **Add Mission modal** — assignee dropdown populated from the agent list
-> 4. **Crew page** — grid of agents, green dot on the currently-logged-in `the_godfather`
-> 5. **Recruit modal** — recruiting a new agent (default password fallback)
-> 6. **Garage table** — filter tab "In Garage" active, a vehicle highlighted
-> 7. **Edit Vehicle modal** — color picker, driver dropdown, business rule visible (Dumped status disables driver)
-> 8. **Intel page** — pinned file at the top, others below; search bar visible
-> 9. **Toast notification** — example after a successful Mission creation
-> 10. **Light theme toggle** — same Board page side-by-side in dark and light mode
-
----
-
-## 10. How to Run Locally
-
-### Prerequisites
-
-- Node.js ≥ 20
-- MySQL 8 (local installation or Docker)
-- npm
-
-### Backend
-
-```bash
-cd the_heist/backend
-npm install
-cp .env.example .env
-# Edit .env: set DATABASE_URL and generate JWT_SECRET:
-# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-npx prisma migrate dev   # creates the database and applies the schema
-npm run seed             # loads the demo data
-npm run dev              # API on http://localhost:3001
-```
-
-### Frontend
-
-```bash
-cd the_heist/frontend
-npm install
-npm run dev              # SPA on http://localhost:5173
-```
-
-### Demo accounts (all share the same seed password)
-
-| Alias | Role | Password |
-|---|---|---|
-| `the_godfather` | GODFATHER | `heist2026` |
-| `ghost_rider` | AGENT | `heist2026` |
-| `shadow_fox` | AGENT | `heist2026` |
-| `iron_wraith` | AGENT | `heist2026` |
-
-### Smoke test in 60 seconds
-
-1. Open <http://localhost:5173>, sign in as `the_godfather` / `heist2026`.
-2. On the Board, create a mission. A green toast confirms it; the new card appears in "The Plan".
-3. Hover the card → click the pencil → change its status to "In Progress" → it moves columns.
-4. Visit `/crew` → recruit a new operative; they appear in the grid.
-5. Visit `/garage` → click "Edit" on any vehicle → change its color via the color picker.
-6. Visit `/intel` → toggle a file's pin; it reorders to the top.
-7. Click the Sun / Moon icon in the navbar → the entire UI swaps to light mode.
-8. Click your avatar → "Erase Identity" → confirm → you are logged out (and your `isOnline` flag is `false` in the DB).
-
----
-
-## 11. Future Improvements
-
-While the current implementation satisfies the assignment, several enhancements are documented as future work in `bonus-ideas.md` of the project notes:
-
-| # | Idea | Estimated effort | Argument for the demo |
+| # | Practice | Implementation | Why it matters |
 |---|---|---|---|
-| 1 | **Role-based access control** (GODFATHER vs AGENT) | ~2 h | Hard server-side authorization, not just UI hiding |
-| 2 | **Drag & drop on the Kanban** (vuedraggable) | ~2 h | Natural UX, expected of a modern Kanban |
-| 3 | **Real-time updates via SSE** | ~3 h | Demo two browser windows reacting to one click |
-| 4 | **Refresh tokens** (15 min access + 7 d refresh) | ~4 h | Standard OAuth-style design, reduces token-exposure window |
-| 5 | **Dockerization** (`docker-compose up`) | ~3 h | Reproducible demo on any laptop |
+| 1 | Password hashing | `bcrypt` rounds = 10 on every stored password (seed + recruit) | Stored hashes cannot be reversed; cost = 10 is a sensible 2026 default |
+| 2 | JWT signing | HS256 with a 256-bit secret in `.env` (gitignored) | Tokens cannot be forged without the secret |
+| 3 | Token expiry | 12 hours | Limits the exposure window if a token leaks |
+| 4 | Timing-safe login | `bcrypt.compare` against a dummy hash when the alias is unknown | Blocks alias enumeration via response-time analysis |
+| 5 | HTTP headers | `helmet` middleware | Defense-in-depth against XSS, clickjacking, MIME sniffing |
+| 6 | CORS | Restricted to `CORS_ORIGIN` from `.env` | Prevents arbitrary websites from calling our API on behalf of the user |
+| 7 | Rate limiting | `express-rate-limit` on `/login` (10 / 15 min) | Brute-force resistance |
+| 8 | Input validation | `express-validator` on every route | Guarantees shape and types before they reach Prisma |
+| 9 | SQL injection | Prisma's parameterized queries -- we never build raw SQL | Eliminates SQL-injection vector by construction |
+| 10 | **IDOR fix on `/api/intel` POST** | `authorId` is injected from the verified JWT (`req.agent.id`), never read from the body | Without this, any authenticated agent could post intel under another agent's identity |
+| 11 | Sensitive storage | JWT in `sessionStorage`, not `localStorage` | Token is wiped when the browser tab closes, limiting persistence on shared machines |
+| 12 | Secret management | `.env` is in every relevant `.gitignore`; only `.env.example` is committed | Secrets never leak into the Git history |
+| 13 | Body size cap | `express.json({ limit: '100kb' })` | Mitigates trivial denial-of-service via oversized requests |
+| 14 | Error opacity | The global error handler returns `{ error: 'internal_error' }` for unexpected exceptions | Prevents leaking stack traces or DB internals to attackers |
+| 15 | Online state sync | `/login` flips `isOnline = true`; `/logout` flips it back | Lets the application reason about active sessions |
 
-Already-implemented quality-of-life additions beyond the strict brief:
+For the presentation we will live-explain practices **#4 (timing-safe), #7 (rate-limit) and #10 (IDOR fix)** because these are the ones a grader is most likely to probe.
 
-- **Edit & delete actions** on Missions and Intel (the brief did not require full CRUD on the To-Do entries beyond status changes)
-- **Toast notifications** (`vue-sonner`) for every mutation
-- **Light / dark theme toggle** with persisted preference (CSS variables + Tailwind dark variant + Pinia store)
-- **Recruit-an-agent flow** (creates new authenticated users at runtime)
-- **Vehicle and Intel surfaces** as theme extensions on top of the mandatory To-Do List
+## 3. Hands-On -- Application Walkthrough
+
+We walk through the application in the same order we will demonstrate it on April 28. Each "exercise" below is one functional surface of the final product, with the screenshot taken from the live application running locally after `npm run seed`.
+
+### Exercise 1 -- Authentication and Session Security
+
+The entry point. The user enters their **operative alias** and **retinal scan** (password). The form is wired to `auth.login(alias, password)` in the Pinia store, which calls `POST /api/auth/login` and -- on success -- stores `{token, agent}` in `sessionStorage` and pushes the router to `/board`. Errors are mapped by code: `invalid_credentials -> "Invalid alias or retinal scan"`, `http_429 -> "Too many attempts. Try again in 15 minutes"`, `network_error -> "Cannot reach the operations server"`. We deliberately kept the SignIn page in dark-only theme as an entry-point branding choice; the theme toggle becomes available after login.
+
+We were initially surprised to see how much the *small* security details (rate-limit message, distinct error messages by code, button disabled while `loading`) changed the perceived quality of the form. None of these features are required by the brief, but they make the demo feel honest about what the back-end actually returns.
+
+![SignIn page (alias and retinal scan inputs); the dark gradient is kept as a branding choice and is the only screen not affected by the theme toggle.](<SignIn page.png>)
+
+### Exercise 2 -- Mission Kanban (the core To-Do)
+
+This is the heart of the assignment: a To-Do list with three statuses. We rendered it as a Kanban board with three columns (`The Plan / In Progress / The Loot`) so that moving a task between statuses is a visible act, which is more demonstrable than a status dropdown.
+
+`BoardPage.vue` calls `missionsApi.list()` and `agentsApi.list()` in parallel during `onMounted`, then groups the missions by status into a computed property. Each `MissionCard` exposes Edit and Delete buttons on hover, so the default view stays clean. A mission's status is changed by opening the Edit modal and selecting a new column -- we did not implement drag-and-drop in this milestone but it is on our improvements list (section 4).
+
+Adding a mission opens `AddMissionModal`, which receives the agents list from the parent so the assignee dropdown is populated dynamically. The submit emits a `create` event up to the page, which calls `missionsApi.create(payload)` and pushes the returned (mapped) mission into the local list. A green toast confirms the operation; an error toast describes the failure (e.g. `invalid_assignee` if the chosen operative was deleted in another tab).
+
+![Board page: three Kanban columns (`The Plan`, `In Progress`, `The Loot`) populated with seeded missions; live counts in the stat cards reflect the current state of each column.](Board.png)
+
+![Add Mission modal: title, priority, status and assignee selector. The assignee dropdown is populated dynamically from `agentsApi.list()` so the available operatives match the current crew.](<Add Mission modal.png>)
+
+### Exercise 3 -- Crew Management (recruitment + online status sync)
+
+The Crew page lists every agent in a card grid, with a green dot reflecting `isOnline`. The status was the source of one of our late bugs (section 4.3): we initially never updated `isOnline` on login, so the connected user appeared offline on their own profile. We fixed this by having `POST /api/auth/login` flip the field to `true` and a new `POST /api/auth/logout` flip it back.
+
+The Recruit modal creates a new agent through `POST /api/agents`, with `bcrypt` hashing applied server-side and the alias unique constraint enforced (`P2002 -> 409 alias_taken`). The modal does not (yet) ask for a password; the back-end falls back to the seed password `heist2026` if none is provided. This is a deliberate demo simplification, called out in the recruit form copy ("Send an encrypted invite link"), and the API endpoint *does* accept a custom password if a future UI provides one.
+
+![Crew page: agent cards with role badge, status badge and a presence dot whose colour is bound to `agent.isOnline`. The connected user (`the_godfather`) appears with a green dot once the login + logout endpoints sync the field.](<Crew page.png>)
+
+![Recruit modal: creates a new agent through `POST /api/agents`. The password is hashed with bcrypt server-side; a duplicate alias returns HTTP 409 and is surfaced as an error toast.](<Recruit modal.png>)
+
+### Exercise 4 -- Garage (additional CRUD with business rules)
+
+The Garage manages stolen vehicles. It is not part of the brief's strict scope (which is "To-Do list"), but we built it as a second CRUD surface to exercise the same architecture more fully. It illustrates two interesting points:
+
+- **Filter tabs** at the top let the user narrow the view by status (`In Garage / In Use / Dumped / Sold`). The filter is applied client-side because the list is small; for larger datasets the same code already supports a `?status=` query parameter on the API.
+- **Server-side business rule** on `PUT /api/vehicles/:id`: when the new status is `DUMPED`, `driverId` is forced to `null` regardless of what the client sent. The front-end modals also disable the driver field in that state, but enforcing the invariant on the back-end means a curl call cannot bypass it. This is the right place to enforce business invariants, even if it duplicates the UI logic.
+
+![Garage table: client-side filter tabs (`All vehicles`, `In Garage`, `In Use`, `Dumped`, `Sold`); the same filter is also available as a `?status=` query parameter on the API for larger datasets.](<Garage table.png>)
+
+The Edit modal (figure 7) shows the color picker (`<input type="color">`) and the driver dropdown. Note that the assignee/driver references are sent as IDs (`driverId: number`), not as alias strings -- the dropdown maps the displayed alias back to the agent's ID before submitting.
+
+![Edit Vehicle modal: native HTML colour picker and driver dropdown. When the status becomes `Dumped`, the driver field is disabled in the UI and the back-end forces `driverId` to `null` -- the business rule is enforced server-side, not just in the form.](<Edit Vehicle modal.png>)
+
+### Exercise 5 -- Intel (text search + pin + edit + delete)
+
+Intel files are short notes attached to the operation. The page lists them with the pinned items on top, and the search box filters by title and description on the client (the API also supports `?search=` if needed at scale). Each card has three hover actions: edit, delete, and toggle-pin.
+
+The pin toggle is implemented as an **optimistic update with rollback**: we flip `file.isPinned` in the local state immediately, call `PUT /api/intel/:id`, and revert the local state if the request fails. This makes the UX feel instant even on a slow network. We discovered that this same pattern would be valuable on the Kanban board if we ever ship drag-and-drop -- we will reuse the rollback helper.
+
+This page also shows our **IDOR fix in action** (the security highlight of Milestone 3). When a user creates a new intel file, the front-end never sends `authorId`. The back-end injects `authorId = req.agent.id` from the verified JWT. This means even a hand-crafted curl call cannot author intel under another agent's identity.
+
+![Intel page: pinned files appear first, followed by the rest. The search input filters by title and description on the client side. The pin toggle uses an optimistic UI update with rollback on API error.](<Intel page.png>)
+
+### Exercise 6 -- UX Polish (toast notifications and theme toggle)
+
+Two small features make the demo feel finished and give us material to talk about during the presentation.
+
+**Toasts** (vue-sonner) fire on every create / update / delete and on auth events. Success in green, errors in red, with a close button. The toast text is mapped from the back-end error code (`alias_taken -> "This alias is already taken"`, etc.), which made it easy to keep the wording consistent across pages.
+
+**Light / dark theme toggle** in the navbar (Sun / Moon icon). The theme is stored in a small `ThemeStore` (Pinia) and persisted in `localStorage`. To avoid the "flash of wrong theme" that a Vue-only solution would cause, an inline script in `index.html` reads the stored theme and applies the class on `<html>` *before* Vue mounts. The implementation uses Tailwind 4's `@custom-variant dark` plus CSS variables for the theme tokens (`--bg-page`, `--bg-card`, `--text-primary`, etc.), so the swap is instant and consistent across every component.
+
+![Toast notification (`vue-sonner`): green confirmation fired after a successful mission creation. The wording is mapped from the back-end response code so it stays consistent across all CRUD operations.](<Toast notification.png>)
+
+![Light theme: the same Board page rendered in light mode after pressing the Sun/Moon toggle in the navbar. The theme is persisted in `localStorage` and re-applied before Vue mounts to avoid the flash of the wrong theme.](<Light theme toggle (light).png>)
+
+## 4. Reflections and Observations
+
+**• Challenges Faced:**
+
+- **Front / back label mismatch.** Milestone 2 left us with hardcoded human-readable labels in 30+ Vue components (`The Plan`, `Godfather`, `On Mission`). The Prisma enums conventionally use `SCREAMING_SNAKE`. A naive integration would have required touching every component. We solved this with a single `services/mappers.js` that translates both directions. It was tempting to "just refactor the components", but the mapper approach turned out cleaner: components keep the labels they were built with, and the mapper became the only boundary that knows about both conventions. This is the kind of trade-off (touch one file vs touch thirty) that we will think about earlier next time.
+- **IDOR vulnerability discovered during the security audit.** Our first version of `POST /api/intel` accepted `authorId` from the request body. An authenticated agent could therefore create intel under another agent's identity. The front-end would never have done that, but the back-end should not trust the front-end. We removed `authorId` from the validator and the body, and now use `req.agent.id` from the JWT. This was the most concrete reminder that "the user is authenticated" and "the user is allowed to claim X" are two different questions.
+- **Online status not synced with the session.** Initially `Agent.isOnline` was only set by the seed script and never updated. A logged-in user appeared as offline on their own profile, which broke the green dot on the Crew page. We added `isOnline = true` on `/login` and `isOnline = false` on a new `/logout` endpoint, and made the front-end `AuthStore.logout()` async so it can call `/logout` *before* clearing the local token. Without this ordering, the logout request would have been sent without auth.
+- **Vehicle business rules.** A "Dumped" vehicle should not have a driver, and an "In Use" or "Sold" vehicle should not have a stash location. Our front-end modals disabled the relevant fields, but a curl call could have bypassed them. We added the rule to the `PUT /api/vehicles/:id` route so the back-end forces `driverId = null` when status becomes `DUMPED`, regardless of what the client sent. The principle: enforce business invariants at the data layer, not the UI.
+- **MySQL has no native array type.** `IntelFile.tags` is conceptually a list. We store it as a JSON-encoded `TEXT` column and let the mapper parse / stringify. For our scope (a handful of tags from a fixed vocabulary), this is simpler than a join table and performs well. If we ever need to query "all intel tagged Urgent" efficiently, the join table will become the right answer -- but not yet.
+- **Pandoc / LaTeX rendering of this very document.** Producing this PDF with `pandoc --pdf-engine=xelatex` initially failed on missing MiKTeX packages, then on Cascadia Code not being installed system-wide. We enabled MiKTeX's auto-install (`initexmf --set-config-value=[MPM]AutoInstall=1`) and switched the monospace font to `Consolas`, which is present by default on Windows and renders the ASCII diagrams cleanly.
+
+**• Key Takeaways:**
+
+- **Centralizing cross-cutting concerns pays back fast.** Two small files (`services/api.js` for HTTP / JWT injection, `services/mappers.js` for enum translation) saved us from sprinkling these concerns across every page. Once they were in place, wiring a new page took minutes, not hours.
+- **"Authenticated" is not "authorized".** The IDOR fix taught us that identity verification (JWT valid) and authorization (allowed to do this specific action with this specific data) are different layers. The back-end has to enforce both, even when the front-end already does.
+- **Optimistic UI is cheap when the rollback path is clear.** The pin toggle on Intel feels instant and the rollback on error is six lines of code. We will use the same pattern for any low-risk mutation in the future.
+- **Idempotent seeds save team time.** Using `upsert` in `seed.js` means anyone on the team can reset their database with one command without worrying about duplicate-key errors. This sounds small but it removed a real friction point during P3.
+- **Persisting JWT in `sessionStorage` is a small choice with a big argument.** Wiping the token when the browser tab closes is one extra sentence to say in the presentation, but it directly addresses the "shared machine" attack surface. We will reuse this default in our future projects.
+
+**• Improvements (next steps):**
+
+- **Drag-and-drop on the Kanban** (`vuedraggable`). We currently move missions between columns through the Edit modal; drag-and-drop is what users expect of a modern Kanban and would be a strong demo moment.
+- **Role-based access control** (GODFATHER vs AGENT). The `AgentRole` enum exists; we would add a `requireRole('GODFATHER')` middleware so that, for example, only a Godfather can delete a mission or pin an intel file. This is a clear server-side authorization argument that complements the IDOR fix.
+- **Real-time updates via SSE.** A `GET /api/events` keep-alive endpoint that broadcasts mutations to all connected clients would let two browser windows react to a single click. Strong wow effect, two to three hours of work.
+- **Refresh tokens** (15 min access + 7 d refresh). Standard OAuth-style design. Would reduce the token-exposure window without forcing the user to re-login often.
+- **Dockerization.** A `docker-compose.yml` for MySQL + back-end + front-end so the demo runs identically on any laptop. Removes the "it works on my machine" risk for April 28.
+
+We chose not to ship these in this milestone because the rendu deadline is two days away and the cost / benefit of any additional code change is unfavorable. The list is documented for the team's portfolio after the course.
+
+**• Comparative Analysis (architecture choices):**
+
+- **Prisma vs Sequelize.** Sequelize was taught in class. We picked Prisma for the declarative schema, the type-safe client and the lighter migration tooling. The trade-off is a ~3 h documentation tax on the lot owner; the upside is type-safe model access and a single source of truth that survived the entire P2 + P3 integration without drift. We are happy with the decision but would expect a 5-minute "why" justification at the demo.
+- **`sessionStorage` vs `localStorage` for the JWT.** `localStorage` would persist the token across tabs and reboots, which is more convenient. We chose `sessionStorage` because the token is a credential, and a credential should not outlive the session that produced it. The cost is that the user has to log in again after closing the browser; the benefit is that a stolen device past the tab close has nothing to find.
+- **Mappers (services/mappers.js) vs DTO on the back-end.** We could have made the back-end return Title-Case strings directly (e.g. respond with `"The Plan"` instead of `"THE_PLAN"`). We chose to keep the back-end on enums and translate on the client because (1) database enums catch invalid values at insert time, (2) the Title-Case is a UI concern not an API concern. If we ever ship a mobile app, the API stays clean and the new client adds its own mapping.
+- **One Pinia store per concern (auth, theme) vs one global store.** Two small stores are easier to reason about than one large one. Each store has its own API surface and its own persistence. The cost is one extra file; the benefit is that the auth flow and the theme toggle never accidentally couple.
+
+**• Future Applications:**
+
+The patterns we built here transfer directly to other projects we expect to work on after the course:
+
+- **Any internal SPA + REST back-end.** The `services/api.js` + `mappers.js` + Pinia store pattern is reusable as-is. We will copy the `ApiError` shape and the JWT-injecting wrapper into our next project and only swap the resource modules.
+- **Production-grade auth on a side project.** The JWT + bcrypt + helmet + rate-limit + IDOR audit checklist is a solid baseline. If we ever wire payments or sensitive PII, we would add refresh tokens, server-side session revocation and HTTPS-only cookies, but the current setup is already reasonable for an internal tool or a portfolio app.
+- **Team coordination on a 5-people short-deadline project.** Splitting work into lots with a single accountable owner per lot, while sharing reviews, was effective. The bottleneck (P1 had to land before P2 and P3 could start) was identified at the start and we resourced it accordingly. We will keep this lot pattern.
+- **Documentation as code.** Having this very document in the repository (`docs/MILESTONE_3.md`), built to PDF with `pandoc + xelatex`, means the doc stays in sync with the code through Git history. We will set up the same pipeline for the README of any future project.
 
 ---
 
-## Appendix A — Repository Layout
-
-```
-the_heist/
-├── frontend/                          # Vue 3 SPA
-│   ├── src/
-│   │   ├── App.vue
-│   │   ├── main.js
-│   │   ├── router/
-│   │   ├── stores/                    # Pinia (AuthStore, ThemeStore)
-│   │   ├── services/                  # api.js, mappers.js
-│   │   ├── layouts/AuthLayout.vue
-│   │   ├── pages/                     # Board, Garage, Intel, Crew, Profile, SignIn
-│   │   └── components/                # board/, crew/, garage/, intel/, modals/, profile/, ui/
-│   ├── index.html
-│   └── vite.config.js
-└── backend/                           # Node.js + Express + Prisma
-    ├── prisma/
-    │   ├── schema.prisma
-    │   ├── seed.js
-    │   └── migrations/
-    ├── src/
-    │   ├── index.js                   # Express bootstrap
-    │   ├── lib/prisma.js              # Singleton Prisma client
-    │   ├── middleware/auth.js         # JWT verification
-    │   └── routes/                    # auth.js, missions.js, vehicles.js, intel.js, agents.js
-    └── README.md                      # Backend-only quickstart
-```
-
-## Appendix B — Conventions Reference
-
-For the team and the next maintainer, the conventions used across the codebase (mappers, API service, AuthStore, error codes, secure coding) are documented in `the-heist/architecture-front-back.md` of the team's notes. This is the single document to read when onboarding on the project.
-
----
-
-_End of Milestone 3 documentation._
+*Code, screenshots and this document are all in the repository linked at the top. Each commit is signed by its author so the per-lot contribution is verifiable from `git log`.*

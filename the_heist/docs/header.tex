@@ -1,0 +1,74 @@
+% ===========================================================================
+%  Custom cover page (overrides \maketitle from the YAML frontmatter)
+%  Layout: 3 \vfill stretches (top, middle, bottom) keep content centered
+%          and guarantee everything fits on a single page.
+% ===========================================================================
+\renewcommand{\maketitle}{
+  \begin{titlepage}
+  \centering
+  \null\vfill
+
+  {\large CONCORDIA UNIVERSITY \\ CONTINUING EDUCATION \par}
+  \vspace{0.5cm}
+  \rule{0.5\textwidth}{0.4pt}\par
+  \vspace{0.8cm}
+
+  {\Huge\bfseries MOD8 \par}
+  \vspace{0.2cm}
+  {\Large Advanced Web Programming \par}
+
+  \vspace{1cm}
+
+  {\LARGE\bfseries Milestone 3 \par}
+  \vspace{0.2cm}
+  {\large Backend Development \& Final Presentation \par}
+
+  \vspace{1.2cm}
+
+  \rule{0.4\textwidth}{0.4pt}\par
+  \vspace{0.4cm}
+  {\LARGE\itshape The Heist \par}
+  \vspace{0.2cm}
+  {\Large Secure To-Do List Application \par}
+  \vspace{0.4cm}
+  \rule{0.4\textwidth}{0.4pt}\par
+
+  \vfill
+
+  {\large\bfseries Team \par}
+  \vspace{0.3cm}
+  {\large
+    BELLEPERCHE Grégoire \\[1pt]
+    RELUT-VAINQUEUR Xavier \\[1pt]
+    GUELLUY Eleonore \\[1pt]
+    MONTENEGRO LOUREIRO Marco-Antonio \\[1pt]
+    QUERREC Thomas \\
+  }
+
+  \vspace{0.7cm}
+
+  {\large \textbf{Instructor:} Marcos Sanches \par}
+  \vspace{0.1cm}
+  {\large \textbf{Term:} Winter 2026 \par}
+  \vspace{0.1cm}
+  {\large \textbf{Submitted:} 27 April 2026 \par}
+
+  \vspace{0.4cm}
+  {\small\ttfamily github.com/gregipoux/Concordia-Efrei-GPRB-Project \par}
+
+  \vfill
+  \end{titlepage}
+}
+
+% ===========================================================================
+%  Force a fresh page before each top-level section (## in markdown,
+%  with --shift-heading-level-by=-1 it maps to \section in LaTeX).
+% ===========================================================================
+\let\origsection\section
+\renewcommand{\section}{\clearpage\origsection}
+
+% --- Avoid huge gaps before figures and after section headers ---
+\setlength{\intextsep}{12pt plus 2pt minus 2pt}
+
+% --- Bold figure label (Figure 1, Figure 2, ...) ---
+\renewcommand{\figurename}{\textbf{Figure}}
