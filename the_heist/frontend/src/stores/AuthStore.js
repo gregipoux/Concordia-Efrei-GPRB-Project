@@ -48,7 +48,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function logout() {
+  async function logout() {
+    // Best-effort: tell the backend to flip isOnline=false BEFORE we drop the token
+    if (token.value) {
+      try {
+        await authApi.logout()
+      } catch {
+        // ignore — we proceed with local clear regardless
+      }
+    }
     currentAgent.value = null
     token.value = null
     error.value = null

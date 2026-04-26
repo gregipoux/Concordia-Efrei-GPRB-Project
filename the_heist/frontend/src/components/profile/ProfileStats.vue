@@ -36,8 +36,8 @@ const stats = computed(() => [
 
 .profile-stat-card {
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(10, 13, 22, 0.62);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 1.25rem 1.5rem;
@@ -49,12 +49,12 @@ const stats = computed(() => [
 .profile-stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .profile-stat-label {
   font-size: 0.8rem;
-  color: #71717a;
+  color: var(--text-muted);
 }
 </style>

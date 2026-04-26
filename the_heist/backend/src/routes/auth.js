@@ -41,8 +41,13 @@ router.post(
         return res.status(401).json({ error: 'invalid_credentials' })
       }
 
+      const updated = await prisma.agent.update({
+        where: { id: agent.id },
+        data: { isOnline: true },
+      })
+
       const token = jwt.sign(
-        { sub: agent.id, alias: agent.alias, role: agent.role },
+        { sub: updated.id, alias: updated.alias, role: updated.role },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
       )
@@ -50,12 +55,13 @@ router.post(
       return res.json({
         token,
         agent: {
-          id: agent.id,
-          alias: agent.alias,
-          role: agent.role,
-          specialization: agent.specialization,
-          roleInHeist: agent.roleInHeist,
-          status: agent.status,
+          id: updated.id,
+          alias: updated.alias,
+          role: updated.role,
+          specialization: updated.specialization,
+          roleInHeist: updated.roleInHeist,
+          status: updated.status,
+          isOnline: updated.isOnline,
         },
       })
     } catch (err) {
@@ -66,6 +72,18 @@ router.post(
 
 router.get('/me', requireAuth, (req, res) => {
   res.json({ agent: req.agent })
+})
+
+router.post('/logout', requireAuth, async (req, res) => {
+  try {
+    await prisma.agent.update({
+      where: { id: req.agent.id },
+      data: { isOnline: false },
+    })
+  } catch {
+    // best-effort: never block client logout on a DB hiccup
+  }
+  res.json({ ok: true })
 })
 
 export default router

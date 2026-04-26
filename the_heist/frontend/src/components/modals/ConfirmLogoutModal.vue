@@ -10,7 +10,7 @@ const emit = defineEmits(['close', 'confirm'])
 
 <template>
   <BaseModal :show="show" title="Confirm Sign Out" max-width="max-w-md" @close="emit('close')">
-    <p class="mb-6 text-sm leading-6 text-zinc-400">
+    <p class="mb-6 text-sm leading-6 text-[var(--text-secondary)]">
       Are you sure you want to sign out from your current session?
     </p>
 

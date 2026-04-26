@@ -22,15 +22,15 @@ const emit = defineEmits(['recruit'])
     <button
       type="button"
       @click="emit('recruit')"
-      class="group flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-white/5 bg-[#0d0f15] p-6 text-center transition hover:border-violet-400/20 hover:bg-[#10131b]"
+      class="group flex min-h-[320px] flex-col items-center justify-center rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-6 text-center transition hover:border-violet-400/30 hover:bg-[var(--bg-card-hover)]"
     >
       <div
-        class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/5 text-2xl text-violet-300 transition group-hover:bg-violet-500/10"
+        class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--bg-overlay-strong)] text-2xl text-violet-500 dark:text-violet-300 transition group-hover:bg-violet-500/10"
       >
         +
       </div>
-      <p class="text-sm font-medium text-gray-300">Recruit a new agent</p>
-      <p class="mt-1 text-xs text-gray-500">Send an encrypted invite link</p>
+      <p class="text-sm font-medium text-[var(--text-secondary)]">Recruit a new agent</p>
+      <p class="mt-1 text-xs text-[var(--text-muted)]">Send an encrypted invite link</p>
     </button>
   </section>
 </template>

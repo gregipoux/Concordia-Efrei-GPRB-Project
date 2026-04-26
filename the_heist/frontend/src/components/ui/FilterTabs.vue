@@ -22,8 +22,8 @@ const emit = defineEmits(['update:activeTab'])
       class="rounded-xl border px-4 py-2 text-sm font-medium transition"
       :class="
         activeTab === tab
-          ? 'border-violet-400/20 bg-violet-500/15 text-violet-200'
-          : 'border-white/6 bg-transparent text-zinc-400 hover:border-white/10 hover:text-white'
+          ? 'border-violet-400/30 bg-violet-500/15 text-violet-700 dark:text-violet-200'
+          : 'border-[var(--border-subtle)] bg-transparent text-[var(--text-secondary)] hover:border-[var(--border)] hover:text-[var(--text-primary)]'
       "
       @click="emit('update:activeTab', tab)"
     >

@@ -10,10 +10,10 @@ const emit = defineEmits(['add-vehicle'])
 <template>
   <section class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
     <div>
-      <h1 class="text-4xl font-semibold tracking-tight text-white">
+      <h1 class="text-4xl font-semibold tracking-tight text-[var(--text-primary)]">
         Stolen Cars Garage
       </h1>
-      <p class="mt-2 text-sm text-zinc-500">
+      <p class="mt-2 text-sm text-[var(--text-muted)]">
         {{ totalVehicles }} vehicles tracked · Operation: {{ vaultName }}
       </p>
     </div>

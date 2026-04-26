@@ -27,11 +27,11 @@ const toneClasses = {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-white/5 bg-[#0a0d14] px-6 py-7 shadow-[0_0_0_1px_rgba(255,255,255,0.01)]">
+  <div class="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card-alt)] px-6 py-7 shadow-[0_0_0_1px_rgba(255,255,255,0.01)]">
     <div class="mb-3 text-5xl font-semibold tracking-tight" :class="toneClasses[tone] || toneClasses.garage">
       {{ value }}
     </div>
-    <div class="text-sm text-zinc-500">
+    <div class="text-sm text-[var(--text-muted)]">
       {{ label }}
     </div>
   </div>

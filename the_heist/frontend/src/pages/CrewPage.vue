@@ -78,7 +78,7 @@ onMounted(loadAgents)
 
   <p
     v-if="loading"
-    class="mt-8 text-center text-sm text-gray-500"
+    class="mt-8 text-center text-sm text-[var(--text-muted)]"
   >
     Loading crew…
   </p>

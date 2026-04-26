@@ -103,8 +103,8 @@ function revokeAll() {
 <style scoped>
 .profile-section-card {
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(10, 13, 22, 0.62);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
@@ -115,11 +115,11 @@ function revokeAll() {
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.profile-section-title { margin: 0 0 0.2rem; font-size: 1rem; font-weight: 600; color: white; }
-.profile-section-subtitle { margin: 0; font-size: 0.8rem; color: #52525b; }
+.profile-section-title { margin: 0 0 0.2rem; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.profile-section-subtitle { margin: 0; font-size: 0.8rem; color: var(--text-subtle); }
 
 .passports-list { display: flex; flex-direction: column; }
 
@@ -141,7 +141,7 @@ function revokeAll() {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border-subtle);
   background: rgba(255, 255, 255, 0.04);
   display: flex;
   align-items: center;

@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
   <div class="flex gap-3">
     <div class="relative flex-1">
       <svg
-        class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+        class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]"
         fill="none"
         stroke="currentColor"
         stroke-width="2"
@@ -26,7 +26,7 @@ const emit = defineEmits(['update:modelValue'])
         :value="modelValue"
         type="text"
         placeholder="Search intel files..."
-        class="w-full rounded-2xl border border-white/8 bg-[#0a0d14] py-3 pl-11 pr-4 text-sm text-white placeholder-zinc-500 outline-none transition-all duration-200 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
+        class="w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card-alt)] py-3 pl-11 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition-all duration-200 focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20"
         @input="emit('update:modelValue', $event.target.value)"
       />
     </div>

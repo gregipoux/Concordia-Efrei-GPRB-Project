@@ -18,9 +18,9 @@ const priorityClasses = {
 </script>
 
 <template>
-  <div class="group rounded-2xl border border-white/5 bg-[#0a0d14] px-5 py-4 transition-colors hover:border-white/10">
+  <div class="group rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card-alt)] px-5 py-4 transition-colors hover:border-[var(--border)]">
     <div class="flex items-start justify-between gap-3">
-      <p class="text-sm font-medium text-white leading-snug">
+      <p class="text-sm font-medium text-[var(--text-primary)] leading-snug">
         {{ mission.title }}
       </p>
       <span
@@ -37,29 +37,29 @@ const priorityClasses = {
           <span class="flex h-7 w-7 items-center justify-center rounded-full bg-violet-600 text-[10px] font-bold text-white">
             {{ mission.assigneeInitials }}
           </span>
-          <span class="text-xs text-zinc-500">{{ mission.assignee }}</span>
+          <span class="text-xs text-[var(--text-muted)]">{{ mission.assignee }}</span>
         </template>
         <template v-else>
-          <span class="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-700 text-xs text-zinc-400">
+          <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--bg-overlay-strong)] text-xs text-[var(--text-muted)]">
             —
           </span>
-          <span class="text-xs text-zinc-500">Unassigned</span>
+          <span class="text-xs text-[var(--text-muted)]">Unassigned</span>
         </template>
       </div>
 
       <div class="flex items-center gap-2">
-        <span class="text-xs text-zinc-600 group-hover:hidden">{{ mission.date }}</span>
+        <span class="text-xs text-[var(--text-subtle)] group-hover:hidden">{{ mission.date }}</span>
         <div class="hidden gap-1 group-hover:flex">
           <button
             type="button"
-            class="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition-colors hover:border-white/20 hover:text-white"
+            class="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
             @click="emit('edit', mission)"
           >
             <Pencil :size="12" />
           </button>
           <button
             type="button"
-            class="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition-colors hover:border-rose-400/40 hover:text-rose-400"
+            class="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)] transition-colors hover:border-rose-400/40 hover:text-rose-500"
             @click="emit('delete', mission)"
           >
             <Trash2 :size="12" />

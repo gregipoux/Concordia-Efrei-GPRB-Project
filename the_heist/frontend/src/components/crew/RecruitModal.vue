@@ -43,12 +43,12 @@ const submitForm = () => {
     @click.self="$emit('close')"
   >
     <div
-      class="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0d0f15] p-6 shadow-2xl"
+      class="w-full max-w-lg rounded-3xl border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-2xl"
     >
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h2 class="text-xl font-semibold text-white">Recruit New Agent</h2>
-          <p class="mt-1 text-sm text-gray-500">
+          <h2 class="text-xl font-semibold text-[var(--text-primary)]">Recruit New Agent</h2>
+          <p class="mt-1 text-sm text-[var(--text-muted)]">
             Add a new operative to the crew.
           </p>
         </div>
@@ -56,7 +56,7 @@ const submitForm = () => {
         <button
           type="button"
           @click="$emit('close')"
-          class="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-gray-400 transition hover:bg-white/5 hover:text-white"
+          class="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--text-secondary)] transition hover:bg-[var(--bg-overlay-strong)] hover:text-[var(--text-primary)]"
         >
           ✕
         </button>
@@ -64,44 +64,44 @@ const submitForm = () => {
 
       <div class="grid gap-4">
         <div>
-          <label class="mb-2 block text-sm text-gray-400">Operative Alias</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Operative Alias</label>
           <input
             v-model="form.alias"
             type="text"
             placeholder="your_codename"
-            class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-violet-400/40"
+            class="modal-input"
           />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-gray-400">Role</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Role</label>
           <select
             v-model="form.role"
-            class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-violet-400/40"
+            class="modal-input"
           >
-            <option value="" class="bg-[#0d0f15]">Select a role</option>
-            <option value="Agent" class="bg-[#0d0f15]">Agent</option>
-            <option value="Godfather" class="bg-[#0d0f15]">Godfather</option>
+            <option value="">Select a role</option>
+            <option value="Agent">Agent</option>
+            <option value="Godfather">Godfather</option>
           </select>
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-gray-400">Specialization</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Specialization</label>
           <input
             v-model="form.specialization"
             type="text"
             placeholder="ex: Driver - Extractor"
-            class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-violet-400/40"
+            class="modal-input"
           />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-gray-400">Role in Heist</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Role in Heist</label>
           <input
             v-model="form.roleInHeist"
             type="text"
             placeholder="Driver / Hacker / Lookout..."
-            class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-violet-400/40"
+            class="modal-input"
           />
         </div>
       </div>
@@ -110,14 +110,14 @@ const submitForm = () => {
         <button
           type="button"
           @click="$emit('close')"
-          class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-sm font-medium text-gray-300 transition hover:bg-white/5 hover:text-white"
+          class="flex-1 secondary-btn"
         >
           Cancel
         </button>
         <button
           type="button"
           @click="submitForm"
-          class="flex-1 rounded-2xl bg-violet-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-violet-400"
+          class="flex-1 primary-btn"
         >
           + Recruit Agent
         </button>

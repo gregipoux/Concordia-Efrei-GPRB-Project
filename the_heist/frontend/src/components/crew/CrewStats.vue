@@ -49,7 +49,7 @@ const stats = computed(() => [
     <div
       v-for="item in stats"
       :key="item.label"
-      class="rounded-3xl border border-white/5 bg-[#0d0f15] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+      class="rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-6 py-6 shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
     >
       <div
         class="text-5xl font-semibold tracking-tight"
@@ -58,7 +58,7 @@ const stats = computed(() => [
         {{ item.value }}
       </div>
 
-      <div class="mt-4 text-sm text-gray-500">
+      <div class="mt-4 text-sm text-[var(--text-muted)]">
         {{ item.label }}
       </div>
     </div>

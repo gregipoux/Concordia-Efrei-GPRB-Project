@@ -20,10 +20,10 @@ const emit = defineEmits(['recruit'])
 <template>
   <section class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
-      <h1 class="text-4xl font-semibold tracking-tight text-white">
+      <h1 class="text-4xl font-semibold tracking-tight text-[var(--text-primary)]">
         Crew Management
       </h1>
-      <p class="mt-2 text-sm text-gray-500">
+      <p class="mt-2 text-sm text-[var(--text-muted)]">
         {{ totalAgents }} operatives • {{ onlineAgents }} online • Operation:
         {{ vaultName }}
       </p>

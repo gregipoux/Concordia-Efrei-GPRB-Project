@@ -47,10 +47,6 @@ const initials = computed(() =>
         </div>
       </div>
 
-      <div class="profile-hero-actions">
-        <button class="secondary-btn">Edit Avatar</button>
-        <button class="primary-btn">Save Profile</button>
-      </div>
     </div>
   </div>
 </template>
@@ -59,8 +55,8 @@ const initials = computed(() =>
 <style scoped>
 .profile-hero-card {
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(10, 13, 22, 0.62);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
   overflow: hidden;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -100,7 +96,7 @@ const initials = computed(() =>
   height: 80px;
   border-radius: 50%;
   background: linear-gradient(135deg, #6d28d9, #4f46e5);
-  border: 3px solid #05070d;
+  border: 3px solid var(--bg-page);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,7 +116,7 @@ const initials = computed(() =>
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid #05070d;
+  border: 2px solid var(--bg-page);
   background: #52525b;
 }
 
@@ -137,7 +133,7 @@ const initials = computed(() =>
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -181,7 +177,7 @@ const initials = computed(() =>
 
 .profile-badge-recruited {
   font-size: 0.75rem;
-  color: #52525b;
+  color: var(--text-subtle);
 }
 
 .profile-hero-actions {

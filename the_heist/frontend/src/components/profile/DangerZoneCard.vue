@@ -3,16 +3,7 @@ import { ref } from 'vue'
 
 const emit = defineEmits(['logout'])
 
-const confirmBurn   = ref(false)
-const confirmLeave  = ref(false)
 const confirmDelete = ref(false)
-
-function burnPassports() {
-  confirmBurn.value = false}
-
-function leaveHeist() {
-  confirmLeave.value = false
-}
 
 function deleteAccount() {
   confirmDelete.value = false
@@ -30,42 +21,6 @@ function deleteAccount() {
     </div>
 
     <div class="danger-list">
-
-      <!-- Burn Passports -->
-      <div class="danger-item">
-        <div class="danger-text">
-          <p class="danger-label">Burn all passports</p>
-          <p class="danger-description">Immediately revoke all active sessions on every device</p>
-        </div>
-        <template v-if="!confirmBurn">
-          <button class="danger-btn danger-btn--soft" @click="confirmBurn = true">Burn Passports</button>
-        </template>
-        <template v-else>
-          <div class="danger-confirm">
-            <span class="danger-confirm-text">Sure?</span>
-            <button class="danger-btn danger-btn--confirm" @click="burnPassports">Yes</button>
-            <button class="secondary-btn" @click="confirmBurn = false">No</button>
-          </div>
-        </template>
-      </div>
-
-      <!-- Leave Heist -->
-      <div class="danger-item">
-        <div class="danger-text">
-          <p class="danger-label">Go dark — Leave operation</p>
-          <p class="danger-description">Remove yourself from the current heist. Missions will be unassigned.</p>
-        </div>
-        <template v-if="!confirmLeave">
-          <button class="danger-btn danger-btn--soft" @click="confirmLeave = true">Leave Heist</button>
-        </template>
-        <template v-else>
-          <div class="danger-confirm">
-            <span class="danger-confirm-text">Sure?</span>
-            <button class="danger-btn danger-btn--confirm" @click="leaveHeist">Yes</button>
-            <button class="secondary-btn" @click="confirmLeave = false">No</button>
-          </div>
-        </template>
-      </div>
 
       <!-- Delete / Erase identity -->
       <div class="danger-item">
@@ -94,7 +49,7 @@ function deleteAccount() {
 .profile-section-card {
   border-radius: 16px;
   border: 1px solid rgba(239, 68, 68, 0.12);
-  background: rgba(10, 13, 22, 0.62);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
@@ -110,7 +65,7 @@ function deleteAccount() {
 
 .profile-section-title { margin: 0 0 0.2rem; font-size: 1rem; font-weight: 600; color: white; }
 .danger-title { color: #f87171; }
-.profile-section-subtitle { margin: 0; font-size: 0.8rem; color: #52525b; }
+.profile-section-subtitle { margin: 0; font-size: 0.8rem; color: var(--text-subtle); }
 
 .danger-list { display: flex; flex-direction: column; }
 

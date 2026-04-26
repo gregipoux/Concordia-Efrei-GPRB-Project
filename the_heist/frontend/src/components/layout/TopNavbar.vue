@@ -1,8 +1,13 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { Sun, Moon } from 'lucide-vue-next'
+import { useAuthStore } from '../../stores/AuthStore.js'
+import { useThemeStore } from '../../stores/ThemeStore.js'
 
 const route = useRoute()
+const auth = useAuthStore()
+const themeStore = useThemeStore()
 const showOperationMenu = ref(false)
 const operationMenuRef = ref(null)
 
@@ -12,6 +17,16 @@ const navItems = [
   { label: 'Garage', to: '/garage' },
   { label: 'Intel', to: '/intel' },
 ]
+
+const avatarInitials = computed(() => {
+  const alias = auth.currentAgent?.alias
+  if (!alias) return '??'
+  return alias
+    .split('_')
+    .map((w) => w[0]?.toUpperCase() || '')
+    .join('')
+    .slice(0, 2)
+})
 
 const props = defineProps({
   onSignOutClick: {
@@ -55,17 +70,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <header class="border-b border-white/5 bg-[#070a11]">
+  <header class="border-b border-[var(--border-subtle)] bg-[var(--bg-card-alt)]">
     <div class="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4 lg:px-8">
       <div class="flex items-center gap-8">
         <RouterLink to="/board" class="flex items-center gap-3">
           <div
-            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.06] backdrop-blur-md border border-white/10 shadow-[0_0_20px_rgba(139,92,246,0.25)] text-white"
+            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--bg-overlay-strong)] backdrop-blur-md border border-[var(--border)] shadow-[0_0_20px_rgba(139,92,246,0.25)] text-[var(--text-primary)]"
           >
             💎
           </div>
 
-          <span class="text-xs uppercase tracking-[0.28em] text-zinc-200">
+          <span class="text-xs uppercase tracking-[0.28em] text-[var(--text-secondary)]">
             The Heist
           </span>
         </RouterLink>
@@ -78,8 +93,8 @@ onBeforeUnmount(() => {
             class="rounded-xl px-4 py-2 text-sm transition-all duration-200"
             :class="
               route.path === item.to
-                ? 'bg-violet-500/15 text-white'
-                : 'text-zinc-500 hover:text-white'
+                ? 'bg-violet-500/15 text-[var(--text-primary)]'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             "
           >
             {{ item.label }}
@@ -90,7 +105,7 @@ onBeforeUnmount(() => {
       <div class="flex items-center gap-3">
         <div ref="operationMenuRef" class="relative hidden md:block">
           <button
-            class="rounded-full border border-violet-400/10 bg-violet-500/10 px-4 py-2 text-xs font-medium tracking-wide text-violet-200 transition-all duration-200 hover:bg-violet-500/15 active:scale-95"
+            class="rounded-full border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-xs font-medium tracking-wide text-violet-600 dark:text-violet-200 transition-all duration-200 hover:bg-violet-500/15 active:scale-95"
             @click.stop="toggleOperationMenu"
           >
             ⚡ GOLDEN VAULT
@@ -99,43 +114,49 @@ onBeforeUnmount(() => {
           <transition name="fade">
             <div
               v-if="showOperationMenu"
-              class="absolute right-0 top-[calc(100%+10px)] z-50 w-72 rounded-2xl border border-white/10 bg-[#0b0f17] p-4 shadow-2xl"
+              class="absolute right-0 top-[calc(100%+10px)] z-50 w-72 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-2xl"
             >
-              <div class="text-xs uppercase tracking-[0.18em] text-zinc-500">Current Operation</div>
-              <div class="mt-2 text-base font-semibold text-white">Golden Vault</div>
+              <div class="text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">Current Operation</div>
+              <div class="mt-2 text-base font-semibold text-[var(--text-primary)]">Golden Vault</div>
 
-              <div class="mt-4 space-y-2 text-sm text-zinc-400">
+              <div class="mt-4 space-y-2 text-sm text-[var(--text-secondary)]">
                 <div class="flex justify-between">
                   <span>Leader</span>
-                  <span class="text-zinc-200">the_godfather</span>
+                  <span class="text-[var(--text-primary)]">the_godfather</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Status</span>
-                  <span class="text-emerald-300">Active</span>
+                  <span class="text-emerald-500 dark:text-emerald-300">Active</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Operatives</span>
-                  <span class="text-zinc-200">4</span>
+                  <span class="text-[var(--text-primary)]">4</span>
                 </div>
               </div>
 
-              <div class="mt-4 flex flex-col gap-2">
-                <button class="secondary-btn w-full text-left">View Details</button>
-                <button class="secondary-btn w-full text-left">Switch Operation</button>
-              </div>
             </div>
           </transition>
         </div>
+
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] transition-all duration-200 hover:border-[var(--border)] hover:text-[var(--text-primary)] active:scale-95"
+          :title="themeStore.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+          @click="themeStore.toggle"
+        >
+          <Sun v-if="themeStore.theme === 'dark'" :size="16" />
+          <Moon v-else :size="16" />
+        </button>
 
         <RouterLink
           to="/profile"
           class="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500 text-sm font-semibold text-white shadow-lg shadow-violet-950/30"
         >
-          GR
+          {{ avatarInitials }}
         </RouterLink>
 
         <button
-          class="rounded-xl border border-white/6 px-4 py-2 text-sm text-zinc-300 transition-all duration-200 hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 active:scale-95"
+          class="rounded-xl border border-[var(--border-subtle)] px-4 py-2 text-sm text-[var(--text-secondary)] transition-all duration-200 hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 active:scale-95"
           @click="props.onSignOutClick && props.onSignOutClick()"
         >
           Sign Out

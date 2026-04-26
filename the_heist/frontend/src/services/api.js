@@ -84,6 +84,9 @@ export const authApi = {
     const data = await request('GET', '/api/auth/me')
     return agentFromApi(data.agent)
   },
+  async logout() {
+    await request('POST', '/api/auth/logout')
+  },
 }
 
 // === Missions ===

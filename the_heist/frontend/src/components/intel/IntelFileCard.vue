@@ -22,7 +22,7 @@ const defaultTag = 'bg-zinc-700/40 text-zinc-400 border border-white/8'
 
 <template>
   <div
-    class="group relative rounded-2xl border border-white/5 bg-[#0a0d14] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.01)] transition-all duration-200 hover:border-white/10 hover:bg-[#0c1018]"
+    class="group relative rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card-alt)] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.01)] transition-all duration-200 hover:border-[var(--border)] hover:bg-[var(--bg-card-hover)]"
   >
     <!-- Pin indicator strip for pinned files -->
     <div
@@ -56,11 +56,11 @@ const defaultTag = 'bg-zinc-700/40 text-zinc-400 border border-white/8'
           </span>
         </div>
 
-        <h3 class="text-sm font-semibold text-white leading-snug">
+        <h3 class="text-sm font-semibold text-[var(--text-primary)] leading-snug">
           {{ file.title }}
         </h3>
 
-        <p class="mt-2 text-xs leading-relaxed text-zinc-500 line-clamp-2">
+        <p class="mt-2 text-xs leading-relaxed text-[var(--text-muted)] line-clamp-2">
           {{ file.description }}
         </p>
       </div>
@@ -69,21 +69,21 @@ const defaultTag = 'bg-zinc-700/40 text-zinc-400 border border-white/8'
       <div class="flex shrink-0 items-center gap-1.5">
         <button
           type="button"
-          class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-white/20 hover:text-white"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
           @click="emit('edit', file)"
         >
           <Pencil :size="14" />
         </button>
         <button
           type="button"
-          class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-rose-400/40 hover:text-rose-400"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-rose-400/40 hover:text-rose-500"
           @click="emit('delete', file)"
         >
           <Trash2 :size="14" />
         </button>
         <button
           type="button"
-          class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-400"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-500"
           :class="{ 'opacity-100 border-amber-500/30 bg-amber-500/10 text-amber-400': file.isPinned }"
           @click="emit('toggle-pin', file.id)"
         >
@@ -102,9 +102,9 @@ const defaultTag = 'bg-zinc-700/40 text-zinc-400 border border-white/8'
       >
         {{ file.authorInitials }}
       </div>
-      <span class="text-xs text-zinc-500">{{ file.author }}</span>
-      <span class="text-xs text-zinc-700">·</span>
-      <span class="text-xs text-zinc-600">{{ file.date }}</span>
+      <span class="text-xs text-[var(--text-muted)]">{{ file.author }}</span>
+      <span class="text-xs text-[var(--text-subtle)]">·</span>
+      <span class="text-xs text-[var(--text-subtle)]">{{ file.date }}</span>
     </div>
   </div>
 </template>

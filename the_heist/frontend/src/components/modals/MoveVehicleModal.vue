@@ -66,7 +66,7 @@ function submit() {
       </div>
 
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">New Status</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">New Status</label>
         <select v-model="form.status" class="modal-input">
           <option>In Garage</option>
           <option>In Use</option>
@@ -76,7 +76,7 @@ function submit() {
       </div>
 
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">Driver</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">Driver</label>
         <select
           v-model="form.driverId"
           class="modal-input"
@@ -88,7 +88,7 @@ function submit() {
       </div>
 
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">New Location</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">New Location</label>
         <input
           v-model="form.stashLocation"
           class="modal-input"
