@@ -1,42 +1,83 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { agents } from '../data/agents.js'
+import { authApi, setToken, ApiError } from '../services/api.js'
+
+const TOKEN_KEY = 'heistToken'
+const AGENT_KEY = 'heistAgent'
+
+function readStoredAgent() {
+  const raw = sessionStorage.getItem(AGENT_KEY)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    sessionStorage.removeItem(AGENT_KEY)
+    return null
+  }
+}
 
 export const useAuthStore = defineStore('auth', () => {
+  const currentAgent = ref(readStoredAgent())
+  const token = ref(sessionStorage.getItem(TOKEN_KEY) || null)
+  const error = ref(null)
+  const loading = ref(false)
 
-    const stored = sessionStorage.getItem('agentId')
-    const currentAgentId = ref(stored ? Number(stored) : null)
+  const isAuthenticated = computed(() => currentAgent.value !== null && token.value !== null)
+  const currentAgentId = computed(() => currentAgent.value?.id ?? null)
 
-    const currentAgent = computed(() =>
-        currentAgentId.value !== null
-            ? agents.find(a => a.id === currentAgentId.value) ?? null
-            : null
-    )
+  function persistAgent(agent) {
+    if (agent) sessionStorage.setItem(AGENT_KEY, JSON.stringify(agent))
+    else sessionStorage.removeItem(AGENT_KEY)
+  }
 
-    const isAuthenticated = computed(() => currentAgent.value !== null)
-
-    function login(alias) {
-        const agent = agents.find(
-            a => a.alias.toLowerCase() === alias.trim().toLowerCase()
-        )
-        if (!agent) return false
-        currentAgentId.value = agent.id
-        sessionStorage.setItem('agentId', String(agent.id))
-        return true
+  async function login(alias, password) {
+    error.value = null
+    loading.value = true
+    try {
+      const { token: t, agent } = await authApi.login(alias, password)
+      token.value = t
+      currentAgent.value = agent
+      setToken(t)
+      persistAgent(agent)
+      return true
+    } catch (err) {
+      error.value = err instanceof ApiError ? err.code : 'network_error'
+      return false
+    } finally {
+      loading.value = false
     }
+  }
 
+  function logout() {
+    currentAgent.value = null
+    token.value = null
+    error.value = null
+    setToken(null)
+    persistAgent(null)
+  }
 
-    function loginDefault() {
-        if (currentAgentId.value !== null) return
-        const fallback = agents[1]
-        currentAgentId.value = fallback.id
-        sessionStorage.setItem('agentId', String(fallback.id))
+  async function refreshMe() {
+    if (!token.value) return null
+    try {
+      const agent = await authApi.me()
+      currentAgent.value = agent
+      persistAgent(agent)
+      return agent
+    } catch {
+      logout()
+      return null
     }
+  }
 
-    function logout() {
-        currentAgentId.value = null
-        sessionStorage.removeItem('agentId')
-    }
-
-    return { currentAgentId, currentAgent, isAuthenticated, login, loginDefault, logout }
+  return {
+    currentAgent,
+    currentAgentId,
+    token,
+    error,
+    loading,
+    isAuthenticated,
+    login,
+    logout,
+    refreshMe,
+  }
 })

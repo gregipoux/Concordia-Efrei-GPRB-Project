@@ -13,17 +13,37 @@ const form = reactive({
 
 const error = ref('')
 
-function handleAuthenticate() {
+function errorMessageFor(code) {
+  switch (code) {
+    case 'invalid_credentials':
+      return 'Invalid alias or retinal scan. Access denied.'
+    case 'invalid_input':
+      return 'Check your inputs and try again.'
+    case 'http_429':
+      return 'Too many attempts. Try again in 15 minutes.'
+    case 'network_error':
+      return 'Cannot reach the operations server.'
+    default:
+      return 'Access denied.'
+  }
+}
+
+async function handleAuthenticate() {
   error.value = ''
   if (!form.alias.trim()) {
     error.value = 'Enter your operative alias.'
     return
   }
-  const success = auth.login(form.alias)
+  if (!form.retinalScan) {
+    error.value = 'Enter your retinal scan code.'
+    return
+  }
+
+  const success = await auth.login(form.alias.trim(), form.retinalScan)
   if (success) {
     router.push('/board')
   } else {
-    error.value = 'Unknown alias. Access denied.'
+    error.value = errorMessageFor(auth.error)
   }
 }
 
@@ -167,8 +187,12 @@ const currentSlide = computed(() => slides[activeSlide.value])
 
           <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
 
-          <button type="submit" class="signin-auth-btn-solid">
-            Authenticate →
+          <button
+            type="submit"
+            class="signin-auth-btn-solid"
+            :disabled="auth.loading"
+          >
+            {{ auth.loading ? 'Authenticating…' : 'Authenticate →' }}
           </button>
         </form>
 
