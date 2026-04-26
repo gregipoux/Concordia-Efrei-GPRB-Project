@@ -73,7 +73,8 @@ router.post(
       .isIn(VEHICLE_STATUSES),
     body('driverId')
       .optional({ nullable: true })
-      .isInt({ min: 1 }),
+      .isInt({ min: 1 })
+      .toInt(),
     body('stashLocation')
       .optional({ nullable: true })
       .isString()
@@ -137,7 +138,8 @@ router.put(
       .isIn(VEHICLE_STATUSES),
     body('driverId')
       .optional({ nullable: true })
-      .isInt({ min: 1 }),
+      .isInt({ min: 1 })
+      .toInt(),
     body('stashLocation')
       .optional({ nullable: true })
       .isString()

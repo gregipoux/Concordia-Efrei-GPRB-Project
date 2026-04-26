@@ -71,7 +71,8 @@ router.post(
       .isIn(MISSION_STATUSES),
     body('assigneeId')
       .optional({ nullable: true })
-      .isInt({ min: 1 }),
+      .isInt({ min: 1 })
+      .toInt(),
   ],
   async (req, res, next) => {
     try {
@@ -123,7 +124,8 @@ router.put(
       .isIn(MISSION_STATUSES),
     body('assigneeId')
       .optional({ nullable: true })
-      .isInt({ min: 1 }),
+      .isInt({ min: 1 })
+      .toInt(),
   ],
   async (req, res, next) => {
     try {

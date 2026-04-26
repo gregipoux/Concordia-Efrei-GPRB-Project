@@ -3,10 +3,12 @@ import bcrypt from 'bcrypt'
 import { body, validationResult } from 'express-validator'
 import { prisma } from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
+import { requireRole } from '../middleware/roles.js'
 
 const router = Router()
 
 const AGENT_ROLES = ['GODFATHER', 'AGENT']
+const AGENT_STATUSES = ['ACTIVE', 'STANDBY', 'ON_MISSION', 'AVAILABLE']
 
 const AGENT_PUBLIC_SELECT = {
   id: true,
@@ -46,10 +48,15 @@ router.get('/', async (req, res, next) => {
 
 router.post(
   '/',
+  requireRole('GODFATHER'),
   [
     body('alias').isString().trim().notEmpty().isLength({ min: 3, max: 64 }),
     body('password').optional().isString().isLength({ min: 8, max: 128 }),
     body('role').optional().isString().trim().isIn(AGENT_ROLES),
+    body('status').optional().isString().trim().isIn(AGENT_STATUSES),
+    body('isOnline').optional().isBoolean().toBoolean(),
+    body('heistCount').optional().isInt({ min: 0, max: 100000 }).toInt(),
+    body('missionsCount').optional().isInt({ min: 0, max: 100000 }).toInt(),
     body('specialization')
       .optional({ nullable: true })
       .isString()
@@ -74,6 +81,10 @@ router.post(
           alias: req.body.alias.trim(),
           password: passwordHash,
           role: req.body.role || 'AGENT',
+          status: req.body.status || 'AVAILABLE',
+          isOnline: req.body.isOnline ?? false,
+          heistCount: req.body.heistCount ?? 0,
+          missionsCount: req.body.missionsCount ?? 0,
           specialization: req.body.specialization?.trim() || null,
           roleInHeist: req.body.roleInHeist?.trim() || null,
         },
