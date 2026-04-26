@@ -103,6 +103,20 @@ test('non-GODFATHER agents cannot recruit accounts', async () => {
   assert.equal(res.body.error, 'forbidden')
 })
 
+test('non-GODFATHER agents cannot DELETE missions/vehicles/intel', async () => {
+  mockAuthUser(agent)
+  const token = tokenFor(agent)
+
+  for (const path of ['/api/missions/1', '/api/vehicles/1', '/api/intel/1']) {
+    const res = await request(app)
+      .delete(path)
+      .set('Authorization', `Bearer ${token}`)
+
+    assert.equal(res.status, 403, `expected 403 on DELETE ${path}`)
+    assert.equal(res.body.error, 'forbidden')
+  }
+})
+
 test('GODFATHER recruitment validates and sanitizes numeric fields', async () => {
   mockAuthUser(godfather)
 

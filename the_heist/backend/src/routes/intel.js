@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { body, param, query, validationResult } from 'express-validator'
 import { prisma } from '../lib/prisma.js'
 import { requireAuth } from '../middleware/auth.js'
+import { requireRole } from '../middleware/roles.js'
 
 const router = Router()
 
@@ -147,6 +148,7 @@ router.put(
 
 router.delete(
   '/:id',
+  requireRole('GODFATHER'),
   [param('id').isInt({ min: 1 })],
   async (req, res, next) => {
     try {
