@@ -50,15 +50,73 @@ Password commun : **`heist2026`**
 | `shadow_fox`    | AGENT     | On Mission |
 | `iron_wraith`   | AGENT     | Available  |
 
-## Endpoints disponibles (P1)
+## Endpoints disponibles
 
-| Méthode | Route              | Auth | Description                      |
-| ------- | ------------------ | ---- | -------------------------------- |
-| GET     | `/health`          | non  | Healthcheck                      |
+**Auth** : envoyer `Authorization: Bearer <token>` dans les headers (sauf `/health` et `/api/auth/login`).
+
+### Auth
+
+| Méthode | Route              | Auth | Description                            |
+| ------- | ------------------ | ---- | -------------------------------------- |
+| GET     | `/health`          | non  | Healthcheck                            |
 | POST    | `/api/auth/login`  | non  | `{alias, password}` → `{token, agent}` |
-| GET     | `/api/auth/me`     | oui  | Retourne l'agent courant         |
+| GET     | `/api/auth/me`     | oui  | Retourne l'agent courant               |
 
-**Auth** : envoyer `Authorization: Bearer <token>` dans les headers.
+### Missions
+
+| Méthode | Route                    | Auth | Description                                      |
+| ------- | ------------------------ | ---- | ------------------------------------------------ |
+| GET     | `/api/missions?status=…` | oui  | Liste, filtre optionnel par status               |
+| POST    | `/api/missions`          | oui  | `{title, priority, status?, assigneeId?}`        |
+| PUT     | `/api/missions/:id`      | oui  | Partial update (title, priority, status, assigneeId) |
+| DELETE  | `/api/missions/:id`      | oui  | Supprime une mission                             |
+
+`status` ∈ `THE_PLAN`, `IN_PROGRESS`, `THE_LOOT`. `priority` ∈ `CRITICAL`, `HIGH`, `LOW`.
+
+### Vehicles
+
+| Méthode | Route                    | Auth | Description                                      |
+| ------- | ------------------------ | ---- | ------------------------------------------------ |
+| GET     | `/api/vehicles?status=…` | oui  | Liste, filtre optionnel par status               |
+| POST    | `/api/vehicles`          | oui  | `{name, year, color, colorHex, plate, status?, driverId?, stashLocation?}` |
+| PUT     | `/api/vehicles/:id`      | oui  | Partial update — règle métier : `DUMPED` → `driverId=null` |
+| DELETE  | `/api/vehicles/:id`      | oui  | Supprime un véhicule                             |
+
+`status` ∈ `IN_GARAGE`, `IN_USE`, `DUMPED`, `SOLD`.
+
+### Intel
+
+| Méthode | Route                    | Auth | Description                                      |
+| ------- | ------------------------ | ---- | ------------------------------------------------ |
+| GET     | `/api/intel?search=…`    | oui  | Liste (recherche optionnelle title/description), tri pinned d'abord |
+| POST    | `/api/intel`             | oui  | `{title, description, tags}` — `authorId` injecté depuis le JWT |
+| PUT     | `/api/intel/:id`         | oui  | Partial update (`title`, `description`, `tags`, `isPinned`) |
+| DELETE  | `/api/intel/:id`         | oui  | Supprime un fichier intel                        |
+
+Pour toggle un pin, le client envoie `{ isPinned: !current }`.
+
+### Agents (Crew)
+
+| Méthode | Route                    | Auth | Description                                      |
+| ------- | ------------------------ | ---- | ------------------------------------------------ |
+| GET     | `/api/agents`            | oui  | Liste publique (sans password) avec stats        |
+| POST    | `/api/agents`            | oui  | Recrutement : `{alias, password, role?, specialization?, roleInHeist?}` |
+
+`role` ∈ `GODFATHER`, `AGENT` (défaut `AGENT`). `password` ≥ 8 chars, hashé bcrypt côté serveur.
+
+### Codes d'erreur normalisés
+
+| Status | Code retourné                | Cause                                        |
+| ------ | ---------------------------- | -------------------------------------------- |
+| 400    | `invalid_input`              | Validation `express-validator` KO            |
+| 400    | `invalid_assignee`           | `assigneeId` mission inexistant (FK)         |
+| 400    | `invalid_driver`             | `driverId` vehicle inexistant (FK)           |
+| 401    | `invalid_token` / `token_expired` | JWT KO ou expiré                       |
+| 401    | `invalid_credentials`        | Login KO                                     |
+| 404    | `not_found`                  | Resource introuvable                         |
+| 409    | `alias_taken`                | Alias agent déjà pris (unicité)              |
+| 409    | `plate_taken`                | Plaque véhicule déjà prise (unicité)         |
+| 429    | rate-limited                 | Trop de tentatives login (10 / 15 min)       |
 
 ## Scripts npm
 
