@@ -1,4 +1,10 @@
 <script setup>
+defineProps({
+  totalMissions: { type: Number, default: 0 },
+  onlineOperatives: { type: Number, default: 0 },
+  vaultName: { type: String, default: 'Golden Vault' },
+})
+
 const emit = defineEmits(['new-mission', 'filter'])
 </script>
 
@@ -9,7 +15,7 @@ const emit = defineEmits(['new-mission', 'filter'])
         Operations Board
       </h1>
       <p class="mt-2 text-sm text-zinc-500">
-        7 active missions · 2 operatives online · Operation: Golden Vault
+        {{ totalMissions }} active missions · {{ onlineOperatives }} operatives online · Operation: {{ vaultName }}
       </p>
     </div>
 

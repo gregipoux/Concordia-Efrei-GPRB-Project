@@ -12,7 +12,7 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['add-mission'])
+const emit = defineEmits(['add-mission', 'edit-mission', 'delete-mission'])
 
 const badgeClasses = {
   'bg-violet-500': 'bg-violet-500/20 text-violet-400',
@@ -46,6 +46,8 @@ const badgeClasses = {
         v-for="mission in missions"
         :key="mission.id"
         :mission="mission"
+        @edit="emit('edit-mission', $event)"
+        @delete="emit('delete-mission', $event)"
       />
     </div>
 

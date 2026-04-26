@@ -1,4 +1,6 @@
 <script setup>
+import { Pencil, Trash2 } from 'lucide-vue-next'
+
 const props = defineProps({
   file: {
     type: Object,
@@ -6,7 +8,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['toggle-pin'])
+const emit = defineEmits(['toggle-pin', 'edit', 'delete'])
 
 const tagClasses = {
   Classified: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',
@@ -63,17 +65,33 @@ const defaultTag = 'bg-zinc-700/40 text-zinc-400 border border-white/8'
         </p>
       </div>
 
-      <!-- Pin toggle button -->
-      <button
-        type="button"
-        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-400"
-        :class="{ 'opacity-100 border-amber-500/30 bg-amber-500/10 text-amber-400': file.isPinned }"
-        @click="emit('toggle-pin', file.id)"
-      >
-        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
-        </svg>
-      </button>
+      <!-- Hover actions -->
+      <div class="flex shrink-0 items-center gap-1.5">
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-white/20 hover:text-white"
+          @click="emit('edit', file)"
+        >
+          <Pencil :size="14" />
+        </button>
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-rose-400/40 hover:text-rose-400"
+          @click="emit('delete', file)"
+        >
+          <Trash2 :size="14" />
+        </button>
+        <button
+          type="button"
+          class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/8 text-zinc-500 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-400"
+          :class="{ 'opacity-100 border-amber-500/30 bg-amber-500/10 text-amber-400': file.isPinned }"
+          @click="emit('toggle-pin', file.id)"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Author row -->

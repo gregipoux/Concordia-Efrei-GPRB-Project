@@ -12,7 +12,7 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['toggle-pin'])
+const emit = defineEmits(['toggle-pin', 'edit', 'delete'])
 </script>
 
 <template>
@@ -31,6 +31,8 @@ const emit = defineEmits(['toggle-pin'])
           :key="file.id"
           :file="file"
           @toggle-pin="emit('toggle-pin', $event)"
+          @edit="emit('edit', $event)"
+          @delete="emit('delete', $event)"
         />
       </div>
     </div>
@@ -49,6 +51,8 @@ const emit = defineEmits(['toggle-pin'])
           :key="file.id"
           :file="file"
           @toggle-pin="emit('toggle-pin', $event)"
+          @edit="emit('edit', $event)"
+          @delete="emit('delete', $event)"
         />
       </div>
     </div>

@@ -1,22 +1,23 @@
 <script setup>
-import { computed, ref } from 'vue'
-import BackgroundGlow from '../components/ui/BackgroundGlow.vue'
-import PageTransition from '../components/ui/PageTransition.vue'
+import { computed, onMounted, ref } from 'vue'
 import StatCard from '../components/ui/StatCard.vue'
 import IntelHeader from '../components/intel/IntelHeader.vue'
 import IntelSearch from '../components/intel/IntelSearch.vue'
 import IntelFileList from '../components/intel/IntelFileList.vue'
 import AddIntelModal from '../components/modals/AddIntelModal.vue'
-import ConfirmLogoutModal from '../components/modals/ConfirmLogoutModal.vue'
-import { intelFiles as initialFiles, intelStats } from '../data/intelData'
-import { useAuthStore } from '../stores/AuthStore.js'
+import EditIntelModal from '../components/modals/EditIntelModal.vue'
+import { intelApi, ApiError } from '../services/api.js'
 
-const auth = useAuthStore()
+const files = ref([])
+const loading = ref(true)
+const error = ref(null)
 
-const files = ref([...initialFiles])
 const searchQuery = ref('')
 const showAddModal = ref(false)
-const showLogoutModal = ref(false)
+const showEditModal = ref(false)
+const selectedFile = ref(null)
+const submitting = ref(false)
+const submitError = ref('')
 
 const filteredFiles = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -25,7 +26,7 @@ const filteredFiles = computed(() => {
     (f) =>
       f.title.toLowerCase().includes(q) ||
       f.description.toLowerCase().includes(q) ||
-      f.tags.some((t) => t.toLowerCase().includes(q)),
+      f.tags.some((t) => t.toLowerCase().includes(q))
   )
 })
 
@@ -51,72 +52,148 @@ const stats = computed(() => [
   },
 ])
 
-function togglePin(id) {
+function describeError(err) {
+  if (!(err instanceof ApiError)) return 'Operation failed.'
+  switch (err.code) {
+    case 'invalid_input':
+      return 'Title, content and at least one tag are required.'
+    case 'not_found':
+      return 'Intel file no longer exists.'
+    default:
+      return 'Operation failed.'
+  }
+}
+
+async function loadFiles() {
+  loading.value = true
+  error.value = null
+  try {
+    files.value = await intelApi.list()
+  } catch (err) {
+    error.value =
+      err instanceof ApiError ? err.code : 'Failed to load intel.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function togglePin(id) {
   const file = files.value.find((f) => f.id === id)
-  if (file) file.isPinned = !file.isPinned
+  if (!file) return
+  const previous = file.isPinned
+  file.isPinned = !previous
+  try {
+    const updated = await intelApi.togglePin(id, previous)
+    const idx = files.value.findIndex((f) => f.id === id)
+    if (idx !== -1) files.value.splice(idx, 1, updated)
+  } catch {
+    file.isPinned = previous
+  }
 }
 
-function addFile(newFile) {
-  const agent = auth.currentAgent
-  files.value.unshift({
-    id: Date.now(),
-    title: newFile.title,
-    description: newFile.description,
-    tags: newFile.tags,
-    isPinned: newFile.isPinned,
-    author: agent?.alias ?? 'unknown',
-    authorInitials: agent?.alias
-      ? agent.alias
-          .split('_')
-          .map((w) => w[0].toUpperCase())
-          .join('')
-          .slice(0, 2)
-      : '??',
-    authorColor: 'bg-violet-500',
-    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-  })
+async function addFile(payload) {
+  submitting.value = true
+  submitError.value = ''
+  try {
+    const created = await intelApi.create(payload)
+    files.value.unshift(created)
+    showAddModal.value = false
+  } catch (err) {
+    submitError.value = describeError(err)
+  } finally {
+    submitting.value = false
+  }
 }
 
-function openLogoutModal() {
-  showLogoutModal.value = true
+function openEditModal(file) {
+  selectedFile.value = file
+  submitError.value = ''
+  showEditModal.value = true
 }
+
+async function updateFile({ id, payload }) {
+  submitting.value = true
+  submitError.value = ''
+  try {
+    const updated = await intelApi.update(id, payload)
+    const idx = files.value.findIndex((f) => f.id === id)
+    if (idx !== -1) files.value.splice(idx, 1, updated)
+    showEditModal.value = false
+  } catch (err) {
+    submitError.value = describeError(err)
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function deleteFile(file) {
+  if (!window.confirm(`Delete intel "${file.title}"?`)) return
+  try {
+    await intelApi.remove(file.id)
+    files.value = files.value.filter((f) => f.id !== file.id)
+  } catch (err) {
+    submitError.value = describeError(err)
+  }
+}
+
+onMounted(loadFiles)
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#05070d] bg-gradient-to-b from-[#06080f] to-[#04060b]">
-    <BackgroundGlow />
+  <div class="space-y-8">
+    <IntelHeader
+      :total-files="files.length"
+      @new-file="submitError = ''; showAddModal = true"
+    />
 
-    <PageTransition>
-      <main class="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
-        <div class="space-y-8">
-          <!-- Header -->
-          <IntelHeader :total-files="files.length" @new-file="showAddModal = true" />
+    <section class="grid grid-cols-2 gap-5 lg:grid-cols-4">
+      <StatCard
+        v-for="stat in stats"
+        :key="stat.label"
+        :value="stat.value"
+        :label="stat.label"
+        :tone="stat.tone"
+      />
+    </section>
 
-          <!-- Stats -->
-          <section class="grid grid-cols-2 gap-5 lg:grid-cols-4">
-            <StatCard
-              v-for="stat in stats"
-              :key="stat.label"
-              :value="stat.value"
-              :label="stat.label"
-              :tone="stat.tone"
-            />
-          </section>
+    <IntelSearch v-model="searchQuery" />
 
-          <!-- Search -->
-          <IntelSearch v-model="searchQuery" />
+    <p
+      v-if="loading"
+      class="text-center text-sm text-zinc-500"
+    >
+      Loading intel files…
+    </p>
+    <p
+      v-else-if="error"
+      class="text-center text-sm text-rose-400"
+    >
+      {{ error }}
+    </p>
 
-          <!-- File list -->
-          <IntelFileList
-            :pinned-files="pinnedFiles"
-            :all-files="unPinnedFiles"
-            @toggle-pin="togglePin"
-          />
-        </div>
-      </main>
-    </PageTransition>
-
-    <AddIntelModal :show="showAddModal" @close="showAddModal = false" @add-file="addFile" />
-    <ConfirmLogoutModal :show="showLogoutModal" @close="showLogoutModal = false" />
+    <IntelFileList
+      v-else
+      :pinned-files="pinnedFiles"
+      :all-files="unPinnedFiles"
+      @toggle-pin="togglePin"
+      @edit="openEditModal"
+      @delete="deleteFile"
+    />
   </div>
+
+  <AddIntelModal
+    :show="showAddModal"
+    :submitting="submitting"
+    :error="submitError"
+    @close="showAddModal = false"
+    @add-file="addFile"
+  />
+  <EditIntelModal
+    :show="showEditModal"
+    :file="selectedFile"
+    :submitting="submitting"
+    :error="submitError"
+    @close="showEditModal = false"
+    @update="updateFile"
+  />
 </template>

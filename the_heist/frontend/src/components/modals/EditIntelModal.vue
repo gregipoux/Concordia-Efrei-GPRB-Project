@@ -4,11 +4,12 @@ import BaseModal from './BaseModal.vue'
 
 const props = defineProps({
   show: Boolean,
+  file: { type: Object, default: null },
   submitting: Boolean,
   error: String,
 })
 
-const emit = defineEmits(['close', 'add-file'])
+const emit = defineEmits(['close', 'update'])
 
 const availableTags = ['Classified', 'Urgent', 'Recon', 'Strategy']
 
@@ -20,15 +21,15 @@ const form = reactive({
 })
 
 watch(
-  () => props.show,
-  (val) => {
-    if (!val) {
-      form.title = ''
-      form.description = ''
-      form.tags = []
-      form.isPinned = false
-    }
-  }
+  () => props.file,
+  (value) => {
+    if (!value) return
+    form.title = value.title || ''
+    form.description = value.description || ''
+    form.tags = Array.isArray(value.tags) ? [...value.tags] : []
+    form.isPinned = !!value.isPinned
+  },
+  { immediate: true }
 )
 
 function toggleTag(tag) {
@@ -47,27 +48,26 @@ const tagActiveClasses = {
 const tagInactiveClasses =
   'bg-transparent text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'
 
-function handleSubmit() {
-  if (!form.title.trim() || !form.description.trim()) return
-  emit('add-file', {
-    title: form.title.trim(),
-    description: form.description.trim(),
-    tags: [...form.tags],
-    isPinned: form.isPinned,
+function submit() {
+  if (!props.file || !form.title.trim() || !form.description.trim()) return
+  emit('update', {
+    id: props.file.id,
+    payload: {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      tags: [...form.tags],
+      isPinned: form.isPinned,
+    },
   })
 }
 </script>
 
 <template>
-  <BaseModal :show="show" title="New Intel File" max-width="max-w-2xl" @close="emit('close')">
-    <form class="space-y-5" @submit.prevent="handleSubmit">
+  <BaseModal :show="show" title="Edit Intel File" max-width="max-w-2xl" @close="emit('close')">
+    <form class="space-y-5" @submit.prevent="submit">
       <div>
         <label class="mb-2 block text-sm text-zinc-400">Title</label>
-        <input
-          v-model="form.title"
-          class="modal-input"
-          placeholder="Guard rotation schedule — East Wing"
-        />
+        <input v-model="form.title" class="modal-input" />
       </div>
 
       <div>
@@ -75,7 +75,6 @@ function handleSubmit() {
         <textarea
           v-model="form.description"
           class="modal-input min-h-[100px] resize-none"
-          placeholder="Describe the intelligence details..."
         />
       </div>
 
@@ -122,7 +121,7 @@ function handleSubmit() {
           class="primary-btn"
           :disabled="submitting || !form.title.trim() || !form.description.trim()"
         >
-          {{ submitting ? 'Saving…' : 'Save File' }}
+          {{ submitting ? 'Saving…' : 'Save Changes' }}
         </button>
       </div>
     </form>

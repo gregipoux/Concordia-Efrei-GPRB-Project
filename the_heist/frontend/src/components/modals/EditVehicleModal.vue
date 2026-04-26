@@ -4,42 +4,41 @@ import BaseModal from './BaseModal.vue'
 
 const props = defineProps({
   show: Boolean,
-  vehicle: {
-    type: Object,
-    default: null,
-  },
+  vehicle: { type: Object, default: null },
+  agents: { type: Array, default: () => [] },
+  submitting: Boolean,
+  error: String,
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'update'])
 
 const form = reactive({
   vehicle: '',
   year: '',
   color: '',
+  colorHex: '#777777',
   plate: '',
-  driver: '',
+  driverId: null,
   stashLocation: '',
   status: 'In Garage',
 })
 
-const locationLocked = computed(() =>
-  form.status === 'In Use' || form.status === 'Sold'
+const locationLocked = computed(
+  () => form.status === 'In Use' || form.status === 'Sold'
 )
-
-const driverLocked = computed(() =>
-  form.status === 'Dumped'
-)
+const driverLocked = computed(() => form.status === 'Dumped')
 
 watch(
   () => props.vehicle,
   (value) => {
     if (!value) return
-    form.vehicle = value.vehicle || ''
+    form.vehicle = value.vehicle || value.name || ''
     form.year = value.year || ''
     form.color = value.color || ''
+    form.colorHex = value.colorHex || '#777777'
     form.plate = value.plate || ''
-    form.driver = value.driver || ''
-    form.stashLocation = value.stashLocation || ''
+    form.driverId = value.driverId ?? null
+    form.stashLocation = value.stashLocation === '—' ? '' : value.stashLocation || ''
     form.status = value.status || 'In Garage'
   },
   { immediate: true }
@@ -48,24 +47,32 @@ watch(
 watch(
   () => form.status,
   (status) => {
-    if (status === 'In Use' || status === 'Sold') {
-      form.stashLocation = '—'
-    } else if (form.stashLocation === '—') {
-      form.stashLocation = ''
-    }
-
-    if (status === 'Dumped') {
-      form.driver = 'Unassigned'
-    } else if (form.driver === 'Unassigned') {
-      form.driver = ''
-    }
+    if (status === 'In Use' || status === 'Sold') form.stashLocation = ''
+    if (status === 'Dumped') form.driverId = null
   }
 )
+
+function submit() {
+  if (!props.vehicle) return
+  emit('update', {
+    id: props.vehicle.id,
+    payload: {
+      name: form.vehicle.trim(),
+      year: form.year.trim(),
+      color: form.color.trim(),
+      colorHex: form.colorHex,
+      plate: form.plate.trim(),
+      status: form.status,
+      driverId: driverLocked.value ? null : form.driverId,
+      stashLocation: locationLocked.value ? null : form.stashLocation.trim() || null,
+    },
+  })
+}
 </script>
 
 <template>
   <BaseModal :show="show" title="Edit Vehicle" max-width="max-w-3xl" @close="emit('close')">
-    <form class="space-y-5">
+    <form class="space-y-5" @submit.prevent="submit">
       <div class="grid gap-4 md:grid-cols-2">
         <div>
           <label class="mb-2 block text-sm text-zinc-400">Vehicle</label>
@@ -78,23 +85,18 @@ watch(
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Color</label>
+          <label class="mb-2 block text-sm text-zinc-400">Color name</label>
           <input v-model="form.color" class="modal-input" />
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm text-zinc-400">Color swatch</label>
+          <input v-model="form.colorHex" type="color" class="modal-input h-12 p-1" />
         </div>
 
         <div>
           <label class="mb-2 block text-sm text-zinc-400">Plate</label>
           <input v-model="form.plate" class="modal-input" />
-        </div>
-
-        <div>
-          <label class="mb-2 block text-sm text-zinc-400">Driver</label>
-          <input
-            v-model="form.driver"
-            class="modal-input"
-            :disabled="driverLocked"
-            :placeholder="driverLocked ? 'Locked for dumped status' : ''"
-          />
         </div>
 
         <div>
@@ -106,21 +108,37 @@ watch(
             <option>Sold</option>
           </select>
         </div>
+
+        <div>
+          <label class="mb-2 block text-sm text-zinc-400">Driver</label>
+          <select
+            v-model="form.driverId"
+            class="modal-input"
+            :disabled="driverLocked"
+          >
+            <option :value="null">{{ driverLocked ? 'Locked (dumped)' : 'Unassigned' }}</option>
+            <option v-for="a in agents" :key="a.id" :value="a.id">{{ a.alias }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm text-zinc-400">Stash Location</label>
+          <input
+            v-model="form.stashLocation"
+            class="modal-input"
+            :disabled="locationLocked"
+            :placeholder="locationLocked ? 'Locked for this status' : ''"
+          />
+        </div>
       </div>
 
-      <div>
-        <label class="mb-2 block text-sm text-zinc-400">Stash Location</label>
-        <input
-          v-model="form.stashLocation"
-          class="modal-input"
-          :disabled="locationLocked"
-          :placeholder="locationLocked ? 'Locked for this status' : ''"
-        />
-      </div>
+      <p v-if="error" class="text-sm text-rose-400">{{ error }}</p>
 
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" class="secondary-btn" @click="emit('close')">Cancel</button>
-        <button type="button" class="primary-btn">Save Changes</button>
+        <button type="submit" class="primary-btn" :disabled="submitting">
+          {{ submitting ? 'Saving…' : 'Save Changes' }}
+        </button>
       </div>
     </form>
   </BaseModal>

@@ -1,4 +1,9 @@
 <script setup>
+defineProps({
+  totalVehicles: { type: Number, default: 0 },
+  vaultName: { type: String, default: 'Golden Vault' },
+})
+
 const emit = defineEmits(['add-vehicle'])
 </script>
 
@@ -9,7 +14,7 @@ const emit = defineEmits(['add-vehicle'])
         Stolen Cars Garage
       </h1>
       <p class="mt-2 text-sm text-zinc-500">
-        5 vehicles tracked · Operation: Golden Vault
+        {{ totalVehicles }} vehicles tracked · Operation: {{ vaultName }}
       </p>
     </div>
 

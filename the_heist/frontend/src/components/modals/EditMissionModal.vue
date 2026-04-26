@@ -4,19 +4,13 @@ import BaseModal from './BaseModal.vue'
 
 const props = defineProps({
   show: Boolean,
-  defaultStatus: {
-    type: String,
-    default: 'The Plan',
-  },
-  agents: {
-    type: Array,
-    default: () => [],
-  },
+  mission: { type: Object, default: null },
+  agents: { type: Array, default: () => [] },
   submitting: Boolean,
   error: String,
 })
 
-const emit = defineEmits(['close', 'create'])
+const emit = defineEmits(['close', 'update'])
 
 const form = reactive({
   title: '',
@@ -26,34 +20,37 @@ const form = reactive({
 })
 
 watch(
-  () => props.show,
-  (open) => {
-    if (open) {
-      form.title = ''
-      form.priority = 'High'
-      form.status = props.defaultStatus || 'The Plan'
-      form.assigneeId = null
-    }
-  }
+  () => props.mission,
+  (value) => {
+    if (!value) return
+    form.title = value.title || ''
+    form.priority = value.priority || 'High'
+    form.status = value.status || 'The Plan'
+    form.assigneeId = value.assigneeId ?? null
+  },
+  { immediate: true }
 )
 
 function submit() {
-  if (!form.title.trim()) return
-  emit('create', {
-    title: form.title.trim(),
-    priority: form.priority,
-    status: form.status,
-    assigneeId: form.assigneeId,
+  if (!props.mission || !form.title.trim()) return
+  emit('update', {
+    id: props.mission.id,
+    payload: {
+      title: form.title.trim(),
+      priority: form.priority,
+      status: form.status,
+      assigneeId: form.assigneeId,
+    },
   })
 }
 </script>
 
 <template>
-  <BaseModal :show="show" title="New Mission" max-width="max-w-2xl" @close="emit('close')">
+  <BaseModal :show="show" title="Edit Mission" max-width="max-w-2xl" @close="emit('close')">
     <form class="space-y-5" @submit.prevent="submit">
       <div>
         <label class="mb-2 block text-sm text-zinc-400">Mission Title</label>
-        <input v-model="form.title" class="modal-input" placeholder="Hack the vault security grid" />
+        <input v-model="form.title" class="modal-input" />
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
@@ -80,11 +77,7 @@ function submit() {
         <label class="mb-2 block text-sm text-zinc-400">Assignee</label>
         <select v-model="form.assigneeId" class="modal-input">
           <option :value="null">Unassigned</option>
-          <option
-            v-for="agent in agents"
-            :key="agent.id"
-            :value="agent.id"
-          >
+          <option v-for="agent in agents" :key="agent.id" :value="agent.id">
             {{ agent.alias }}
           </option>
         </select>
@@ -94,12 +87,8 @@ function submit() {
 
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" class="secondary-btn" @click="emit('close')">Cancel</button>
-        <button
-          type="submit"
-          class="primary-btn"
-          :disabled="submitting || !form.title.trim()"
-        >
-          {{ submitting ? 'Creating…' : 'Create Mission' }}
+        <button type="submit" class="primary-btn" :disabled="submitting || !form.title.trim()">
+          {{ submitting ? 'Saving…' : 'Save Changes' }}
         </button>
       </div>
     </form>

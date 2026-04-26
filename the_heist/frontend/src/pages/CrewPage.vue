@@ -1,34 +1,62 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import CrewHeader from '../components/crew/CrewHeader.vue'
 import CrewStats from '../components/crew/CrewStats.vue'
 import CrewGrid from '../components/crew/CrewGrid.vue'
 import RecruitModal from '../components/crew/RecruitModal.vue'
-import { agents as initialAgents } from '../data/agents.js'
+import { agentsApi, ApiError } from '../services/api.js'
 
 const showModal = ref(false)
 const vaultName = 'Golden Vault'
-const agents = ref([...initialAgents])
+const agents = ref([])
+const loading = ref(true)
+const error = ref(null)
+const recruitError = ref(null)
 
-const onlineAgents = computed(() =>
-  agents.value.filter((a) => a.isOnline).length
+const onlineAgents = computed(() => agents.value.filter((a) => a.isOnline).length)
+const godfatherCount = computed(
+  () => agents.value.filter((a) => a.role === 'Godfather').length
+)
+const activeMissionCount = computed(
+  () => agents.value.filter((a) => a.status === 'On Mission').length
 )
 
-const godfatherCount = computed(() =>
-  agents.value.filter((a) => a.role === 'Godfather').length
-)
-
-const activeMissionCount = computed(() =>
-  agents.value.filter((a) => a.status === 'On Mission').length
-)
-
-function addAgent(newAgent) {
-  agents.value.push({
-    ...newAgent,
-    status: newAgent.status || 'Available',
-  })
-  showModal.value = false
+async function loadAgents() {
+  loading.value = true
+  error.value = null
+  try {
+    agents.value = await agentsApi.list()
+  } catch (err) {
+    error.value =
+      err instanceof ApiError ? err.code : 'Failed to load the crew.'
+  } finally {
+    loading.value = false
+  }
 }
+
+async function addAgent(newAgent) {
+  recruitError.value = null
+  try {
+    const created = await agentsApi.recruit({
+      alias: newAgent.alias,
+      role: newAgent.role,
+      specialization: newAgent.specialization || null,
+      roleInHeist: newAgent.roleInHeist || null,
+    })
+    agents.value.push(created)
+    showModal.value = false
+  } catch (err) {
+    if (err instanceof ApiError && err.code === 'alias_taken') {
+      recruitError.value = 'This alias is already taken.'
+    } else if (err instanceof ApiError && err.code === 'invalid_input') {
+      recruitError.value = 'Check the recruitment form (alias 3+ chars, role required).'
+    } else {
+      recruitError.value = 'Recruitment failed. Try again.'
+    }
+  }
+}
+
+onMounted(loadAgents)
 </script>
 
 <template>
@@ -48,14 +76,36 @@ function addAgent(newAgent) {
     />
   </div>
 
+  <p
+    v-if="loading"
+    class="mt-8 text-center text-sm text-gray-500"
+  >
+    Loading crew…
+  </p>
+
+  <p
+    v-else-if="error"
+    class="mt-8 text-center text-sm text-rose-400"
+  >
+    {{ error }}
+  </p>
+
   <CrewGrid
+    v-else
     :agents="agents"
     @recruit="showModal = true"
   />
 
   <RecruitModal
     v-if="showModal"
-    @close="showModal = false"
+    @close="showModal = false; recruitError = null"
     @recruit="addAgent"
   />
+
+  <p
+    v-if="recruitError"
+    class="fixed bottom-6 right-6 z-50 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+  >
+    {{ recruitError }}
+  </p>
 </template>
