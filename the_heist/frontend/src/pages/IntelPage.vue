@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import StatCard from '../components/ui/StatCard.vue'
 import IntelHeader from '../components/intel/IntelHeader.vue'
 import IntelSearch from '../components/intel/IntelSearch.vue'
@@ -88,6 +89,7 @@ async function togglePin(id) {
     if (idx !== -1) files.value.splice(idx, 1, updated)
   } catch {
     file.isPinned = previous
+    toast.error('Failed to update pin status.')
   }
 }
 
@@ -98,8 +100,10 @@ async function addFile(payload) {
     const created = await intelApi.create(payload)
     files.value.unshift(created)
     showAddModal.value = false
+    toast.success(`Intel "${created.title}" filed`)
   } catch (err) {
     submitError.value = describeError(err)
+    toast.error(submitError.value)
   } finally {
     submitting.value = false
   }
@@ -119,8 +123,10 @@ async function updateFile({ id, payload }) {
     const idx = files.value.findIndex((f) => f.id === id)
     if (idx !== -1) files.value.splice(idx, 1, updated)
     showEditModal.value = false
+    toast.success(`Intel "${updated.title}" updated`)
   } catch (err) {
     submitError.value = describeError(err)
+    toast.error(submitError.value)
   } finally {
     submitting.value = false
   }
@@ -131,8 +137,9 @@ async function deleteFile(file) {
   try {
     await intelApi.remove(file.id)
     files.value = files.value.filter((f) => f.id !== file.id)
+    toast.success(`Intel "${file.title}" deleted`)
   } catch (err) {
-    submitError.value = describeError(err)
+    toast.error(describeError(err))
   }
 }
 

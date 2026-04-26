@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import FilterTabs from '../components/ui/FilterTabs.vue'
 import GarageHeader from '../components/garage/GarageHeader.vue'
 import GarageStats from '../components/garage/GarageStats.vue'
@@ -106,8 +107,10 @@ async function createVehicle(payload) {
     const created = await vehiclesApi.create(payload)
     vehicles.value.unshift(created)
     showAddModal.value = false
+    toast.success(`Vehicle "${created.vehicle}" added to the garage`)
   } catch (err) {
     submitError.value = describeError(err)
+    toast.error(submitError.value)
   } finally {
     submitting.value = false
   }
@@ -121,8 +124,10 @@ async function updateVehicle({ id, payload }, closeModal) {
     const idx = vehicles.value.findIndex((v) => v.id === id)
     if (idx !== -1) vehicles.value.splice(idx, 1, updated)
     closeModal()
+    toast.success(`Vehicle "${updated.vehicle}" updated (${updated.status})`)
   } catch (err) {
     submitError.value = describeError(err)
+    toast.error(submitError.value)
   } finally {
     submitting.value = false
   }

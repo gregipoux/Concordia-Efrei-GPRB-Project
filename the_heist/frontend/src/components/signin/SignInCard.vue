@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 import { useAuthStore } from '../../stores/AuthStore.js'
 
 const router = useRouter()
@@ -41,9 +42,12 @@ async function handleAuthenticate() {
 
   const success = await auth.login(form.alias.trim(), form.retinalScan)
   if (success) {
+    toast.success(`Welcome back, ${auth.currentAgent.alias}`)
     router.push('/board')
   } else {
-    error.value = errorMessageFor(auth.error)
+    const msg = errorMessageFor(auth.error)
+    error.value = msg
+    toast.error(msg)
   }
 }
 

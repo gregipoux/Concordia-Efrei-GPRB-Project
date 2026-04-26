@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import CrewHeader from '../components/crew/CrewHeader.vue'
 import CrewStats from '../components/crew/CrewStats.vue'
 import CrewGrid from '../components/crew/CrewGrid.vue'
@@ -11,7 +12,6 @@ const vaultName = 'Golden Vault'
 const agents = ref([])
 const loading = ref(true)
 const error = ref(null)
-const recruitError = ref(null)
 
 const onlineAgents = computed(() => agents.value.filter((a) => a.isOnline).length)
 const godfatherCount = computed(
@@ -35,7 +35,6 @@ async function loadAgents() {
 }
 
 async function addAgent(newAgent) {
-  recruitError.value = null
   try {
     const created = await agentsApi.recruit({
       alias: newAgent.alias,
@@ -45,13 +44,14 @@ async function addAgent(newAgent) {
     })
     agents.value.push(created)
     showModal.value = false
+    toast.success(`Agent ${created.alias} recruited`)
   } catch (err) {
     if (err instanceof ApiError && err.code === 'alias_taken') {
-      recruitError.value = 'This alias is already taken.'
+      toast.error('This alias is already taken.')
     } else if (err instanceof ApiError && err.code === 'invalid_input') {
-      recruitError.value = 'Check the recruitment form (alias 3+ chars, role required).'
+      toast.error('Check the recruitment form (alias 3+ chars, role required).')
     } else {
-      recruitError.value = 'Recruitment failed. Try again.'
+      toast.error('Recruitment failed. Try again.')
     }
   }
 }
@@ -98,14 +98,7 @@ onMounted(loadAgents)
 
   <RecruitModal
     v-if="showModal"
-    @close="showModal = false; recruitError = null"
+    @close="showModal = false"
     @recruit="addAgent"
   />
-
-  <p
-    v-if="recruitError"
-    class="fixed bottom-6 right-6 z-50 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
-  >
-    {{ recruitError }}
-  </p>
 </template>

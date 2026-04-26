@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import BoardHeader from '../components/board/BoardHeader.vue'
 import BoardStats from '../components/board/BoardStats.vue'
 import BoardColumn from '../components/board/BoardColumn.vue'
@@ -89,8 +90,10 @@ async function createMission(payload) {
     const created = await missionsApi.create(payload)
     missions.value.push(created)
     showAddModal.value = false
+    toast.success(`Mission "${created.title}" added to ${created.status}`)
   } catch (err) {
     submitError.value = describeError(err)
+    toast.error(submitError.value)
   } finally {
     submitting.value = false
   }
@@ -110,8 +113,10 @@ async function updateMission({ id, payload }) {
     const idx = missions.value.findIndex((m) => m.id === id)
     if (idx !== -1) missions.value.splice(idx, 1, updated)
     showEditModal.value = false
+    toast.success(`Mission "${updated.title}" updated`)
   } catch (err) {
     submitError.value = describeError(err)
+    toast.error(submitError.value)
   } finally {
     submitting.value = false
   }
@@ -122,8 +127,9 @@ async function deleteMission(mission) {
   try {
     await missionsApi.remove(mission.id)
     missions.value = missions.value.filter((m) => m.id !== mission.id)
+    toast.success(`Mission "${mission.title}" deleted`)
   } catch (err) {
-    submitError.value = describeError(err)
+    toast.error(describeError(err))
   }
 }
 
