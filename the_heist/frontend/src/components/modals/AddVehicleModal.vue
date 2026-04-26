@@ -75,32 +75,32 @@ function submit() {
     <form class="space-y-5" @submit.prevent="submit">
       <div class="grid gap-4 md:grid-cols-2">
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Vehicle</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Vehicle</label>
           <input v-model="form.vehicle" class="modal-input" placeholder="Ferrari 458" />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Year</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Year</label>
           <input v-model="form.year" class="modal-input" placeholder="2022" />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Color name</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Color name</label>
           <input v-model="form.color" class="modal-input" placeholder="Rosso Corsa" />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Color swatch</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Color swatch</label>
           <input v-model="form.colorHex" type="color" class="modal-input h-12 p-1" />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Plate</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Plate</label>
           <input v-model="form.plate" class="modal-input" placeholder="GV-4421" />
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Status</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Status</label>
           <select v-model="form.status" class="modal-input">
             <option>In Garage</option>
             <option>In Use</option>
@@ -110,7 +110,7 @@ function submit() {
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Driver</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Driver</label>
           <select
             v-model="form.driverId"
             class="modal-input"
@@ -122,7 +122,7 @@ function submit() {
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Stash Location</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Stash Location</label>
           <input
             v-model="form.stashLocation"
             class="modal-input"

@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+  <div class="pointer-events-none fixed inset-0 -z-0 hidden overflow-hidden dark:block">
     
     <!-- Glow 1 -->
     <div

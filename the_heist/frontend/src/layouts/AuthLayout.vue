@@ -15,15 +15,15 @@ function openLogoutModal() {
   showLogoutModal.value = true
 }
 
-function handleLogout() {
+async function handleLogout() {
   showLogoutModal.value = false
-  auth.logout()
+  await auth.logout()
   router.push('/signin')
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#05070d] bg-gradient-to-b from-[#06080f] to-[#04060b]">
+  <div class="min-h-screen bg-[var(--bg-page)]">
     <BackgroundGlow />
     <TopNavbar :on-sign-out-click="openLogoutModal" />
 

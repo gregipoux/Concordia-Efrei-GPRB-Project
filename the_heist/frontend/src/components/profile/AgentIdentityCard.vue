@@ -67,8 +67,8 @@ const agent = computed(() => auth.currentAgent)
 <style scoped>
 .profile-section-card {
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(10, 13, 22, 0.62);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
@@ -79,20 +79,20 @@ const agent = computed(() => auth.currentAgent)
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .profile-section-title {
   margin: 0 0 0.2rem;
   font-size: 1rem;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .profile-section-subtitle {
   margin: 0;
   font-size: 0.8rem;
-  color: #52525b;
+  color: var(--text-subtle);
 }
 
 .profile-section-body {
@@ -118,7 +118,7 @@ const agent = computed(() => auth.currentAgent)
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: #52525b;
+  color: var(--text-subtle);
 }
 
 .modal-input[readonly] {

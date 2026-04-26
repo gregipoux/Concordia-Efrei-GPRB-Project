@@ -85,7 +85,7 @@ const roleBadge = computed(() => {
 
 <template>
   <article
-    class="group flex min-h-[320px] flex-col rounded-3xl border border-white/5 bg-[#0d0f15] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-white/10 hover:bg-[#10131b]"
+    class="group flex min-h-[320px] flex-col rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-[var(--border)] hover:bg-[var(--bg-card-hover)]"
   >
     <div class="mb-6 flex justify-end">
       <span
@@ -111,7 +111,7 @@ const roleBadge = computed(() => {
         ></span>
       </div>
 
-      <h3 class="mt-5 truncate text-xl font-semibold text-white">
+      <h3 class="mt-5 truncate text-xl font-semibold text-[var(--text-primary)]">
         {{ agent.alias }}
       </h3>
 
@@ -126,51 +126,36 @@ const roleBadge = computed(() => {
     </div>
 
     <div class="mt-6 grid grid-cols-2 gap-3">
-      <div class="rounded-2xl bg-white/[0.03] px-3 py-4 text-center">
-        <div class="text-2xl font-semibold text-white">{{ agent.heist }}</div>
-        <div class="mt-1 text-[11px] text-gray-500">Heists</div>
+      <div class="rounded-2xl bg-[var(--bg-overlay)] px-3 py-4 text-center">
+        <div class="text-2xl font-semibold text-[var(--text-primary)]">{{ agent.heist }}</div>
+        <div class="mt-1 text-[11px] text-[var(--text-muted)]">Heists</div>
       </div>
 
-      <div class="rounded-2xl bg-white/[0.03] px-3 py-4 text-center">
-        <div class="text-2xl font-semibold text-white">{{ agent.missions }}</div>
-        <div class="mt-1 text-[11px] text-gray-500">Missions</div>
+      <div class="rounded-2xl bg-[var(--bg-overlay)] px-3 py-4 text-center">
+        <div class="text-2xl font-semibold text-[var(--text-primary)]">{{ agent.missions }}</div>
+        <div class="mt-1 text-[11px] text-[var(--text-muted)]">Missions</div>
       </div>
     </div>
 
     <div class="mt-6 text-center">
-      <p class="text-[11px] uppercase tracking-[0.18em] text-gray-500">
+      <p class="text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
         Role in Heist
       </p>
 
       <p
         v-if="agent.specialization"
-        class="mt-3 text-sm text-gray-400"
+        class="mt-3 text-sm text-[var(--text-secondary)]"
       >
         {{ agent.specialization }}
       </p>
 
       <p
         v-else
-        class="mt-3 text-sm text-gray-400"
+        class="mt-3 text-sm text-[var(--text-secondary)]"
       >
         {{ agent.roleInHeist }}
       </p>
     </div>
 
-    <div class="mt-auto grid grid-cols-2 gap-3 pt-8">
-      <button
-        type="button"
-        class="rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm font-medium text-gray-300 transition hover:bg-white/5 hover:text-white"
-      >
-        View
-      </button>
-
-      <button
-        type="button"
-        class="rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm font-medium text-gray-300 transition hover:bg-white/5 hover:text-white"
-      >
-        Assign
-      </button>
-    </div>
   </article>
 </template>

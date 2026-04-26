@@ -148,7 +148,7 @@ onMounted(loadAll)
 
     <p
       v-if="loading"
-      class="text-center text-sm text-zinc-500"
+      class="text-center text-sm text-[var(--text-muted)]"
     >
       Loading missions…
     </p>

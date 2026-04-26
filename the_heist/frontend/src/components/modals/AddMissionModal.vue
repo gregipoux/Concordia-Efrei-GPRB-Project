@@ -52,13 +52,13 @@ function submit() {
   <BaseModal :show="show" title="New Mission" max-width="max-w-2xl" @close="emit('close')">
     <form class="space-y-5" @submit.prevent="submit">
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">Mission Title</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">Mission Title</label>
         <input v-model="form.title" class="modal-input" placeholder="Hack the vault security grid" />
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Priority</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Priority</label>
           <select v-model="form.priority" class="modal-input">
             <option>Critical</option>
             <option>High</option>
@@ -67,7 +67,7 @@ function submit() {
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-400">Status</label>
+          <label class="mb-2 block text-sm text-[var(--text-secondary)]">Status</label>
           <select v-model="form.status" class="modal-input">
             <option>The Plan</option>
             <option>In Progress</option>
@@ -77,7 +77,7 @@ function submit() {
       </div>
 
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">Assignee</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">Assignee</label>
         <select v-model="form.assigneeId" class="modal-input">
           <option :value="null">Unassigned</option>
           <option

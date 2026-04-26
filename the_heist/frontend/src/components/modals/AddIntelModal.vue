@@ -45,7 +45,7 @@ const tagActiveClasses = {
 }
 
 const tagInactiveClasses =
-  'bg-transparent text-zinc-500 border-white/10 hover:border-white/20 hover:text-zinc-300'
+  'bg-transparent text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
 
 function handleSubmit() {
   if (!form.title.trim() || !form.description.trim()) return
@@ -62,7 +62,7 @@ function handleSubmit() {
   <BaseModal :show="show" title="New Intel File" max-width="max-w-2xl" @close="emit('close')">
     <form class="space-y-5" @submit.prevent="handleSubmit">
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">Title</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">Title</label>
         <input
           v-model="form.title"
           class="modal-input"
@@ -71,7 +71,7 @@ function handleSubmit() {
       </div>
 
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">Content</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">Content</label>
         <textarea
           v-model="form.description"
           class="modal-input min-h-[100px] resize-none"
@@ -80,7 +80,7 @@ function handleSubmit() {
       </div>
 
       <div>
-        <label class="mb-2 block text-sm text-zinc-400">Tags</label>
+        <label class="mb-2 block text-sm text-[var(--text-secondary)]">Tags</label>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="tag in availableTags"
@@ -95,15 +95,15 @@ function handleSubmit() {
         </div>
       </div>
 
-      <div class="flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.02] px-4 py-3">
+      <div class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-overlay-soft)] px-4 py-3">
         <div>
-          <p class="text-sm text-zinc-300">Pin this file</p>
-          <p class="text-xs text-zinc-600">Pinned files appear at the top of the board</p>
+          <p class="text-sm text-[var(--text-primary)]">Pin this file</p>
+          <p class="text-xs text-[var(--text-muted)]">Pinned files appear at the top of the board</p>
         </div>
         <button
           type="button"
           class="relative h-6 w-11 rounded-full transition-all duration-200"
-          :class="form.isPinned ? 'bg-violet-500' : 'bg-zinc-700'"
+          :class="form.isPinned ? 'bg-violet-500' : 'bg-[var(--bg-overlay-strong)]'"
           @click="form.isPinned = !form.isPinned"
         >
           <span

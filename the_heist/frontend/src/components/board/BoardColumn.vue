@@ -22,14 +22,14 @@ const badgeClasses = {
 </script>
 
 <template>
-  <div class="flex flex-col rounded-2xl border border-white/5 bg-[#0b0f17]/60 p-5">
+  <div class="flex flex-col rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-5">
     <!-- Column header -->
     <div class="mb-5 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="h-2.5 w-2.5 rounded-full" :class="column.dot" />
         <div>
-          <h3 class="text-sm font-semibold text-white">{{ column.label }}</h3>
-          <p class="text-xs text-zinc-500">{{ column.subtitle }}</p>
+          <h3 class="text-sm font-semibold text-[var(--text-primary)]">{{ column.label }}</h3>
+          <p class="text-xs text-[var(--text-muted)]">{{ column.subtitle }}</p>
         </div>
       </div>
       <span
@@ -54,7 +54,7 @@ const badgeClasses = {
     <!-- Add mission button -->
     <button
       type="button"
-      class="mt-4 w-full rounded-2xl border border-dashed border-white/8 py-3 text-sm text-zinc-500 transition-colors hover:border-white/15 hover:text-zinc-400"
+      class="mt-4 w-full rounded-2xl border border-dashed border-[var(--border)] py-3 text-sm text-[var(--text-muted)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)]"
       @click="emit('add-mission', column.key)"
     >
       + Add mission

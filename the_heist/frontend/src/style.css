@@ -1,5 +1,42 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Light theme defaults */
+  --bg-page: #f4f4f5;
+  --bg-card: #ffffff;
+  --bg-card-alt: #fafafa;
+  --bg-card-hover: #f4f4f5;
+  --bg-overlay-soft: rgba(0, 0, 0, 0.02);
+  --bg-overlay: rgba(0, 0, 0, 0.04);
+  --bg-overlay-strong: rgba(0, 0, 0, 0.06);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-subtle: #cbd5e1;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.18);
+}
+
+.dark {
+  --bg-page: #05070d;
+  --bg-card: #0d0f15;
+  --bg-card-alt: #0a0d14;
+  --bg-card-hover: #10131b;
+  --bg-overlay-soft: rgba(255, 255, 255, 0.02);
+  --bg-overlay: rgba(255, 255, 255, 0.04);
+  --bg-overlay-strong: rgba(255, 255, 255, 0.06);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-subtle: #52525b;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.15);
+}
+
 html,
 body,
 #app {
@@ -11,17 +48,22 @@ body,
 }
 
 html {
-  background: #05070d;
+  background: var(--bg-page);
 }
 
 body {
   margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+/* Dramatic radial glow only in dark mode */
+.dark body {
   background:
     radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 28%),
     radial-gradient(circle at top right, rgba(6, 182, 212, 0.08), transparent 22%),
-    #05070d;
-  color: #ffffff;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+    var(--bg-page);
 }
 
 .route-enter-active,
@@ -56,10 +98,10 @@ button {
 .modal-input {
   width: 100%;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-overlay-soft);
   padding: 0.85rem 1rem;
-  color: white;
+  color: var(--text-primary);
   outline: none;
   appearance: none;
   -webkit-appearance: none;
@@ -67,7 +109,7 @@ button {
 }
 
 .modal-input::placeholder {
-  color: #71717a;
+  color: var(--text-muted);
 }
 
 .modal-input:focus {
@@ -77,26 +119,27 @@ button {
 
 select.modal-input {
   background-image:
-    linear-gradient(45deg, transparent 50%, #a1a1aa 50%),
-    linear-gradient(135deg, #a1a1aa 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
   background-position:
     calc(100% - 18px) calc(50% - 3px),
     calc(100% - 12px) calc(50% - 3px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
   padding-right: 3rem;
+  color: var(--text-primary);
 }
 
 select.modal-input option {
-  background: #0b0f17;
-  color: #ffffff;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 select.modal-input:disabled,
 .modal-input:disabled {
   cursor: not-allowed;
   opacity: 0.6;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--bg-overlay);
 }
 
 .primary-btn {
@@ -114,19 +157,20 @@ select.modal-input:disabled,
 
 .secondary-btn {
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
   background: transparent;
   padding: 0.7rem 1rem;
-  color: #d4d4d8;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: white;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
 }
 
+/* SignIn page is dark-only (entry-point branding); no theme override here */
 .signin-shell {
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;

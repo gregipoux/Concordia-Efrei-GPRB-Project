@@ -28,16 +28,16 @@ const emit = defineEmits(['close'])
         <div
           v-if="show"
           :class="maxWidth"
-          class="w-full rounded-[28px] border border-white/10 bg-[#0b0f17] p-6 shadow-2xl shadow-black/40"
+          class="w-full rounded-[28px] border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-2xl shadow-black/40"
         >
           <div class="mb-5 flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-white">
+            <h2 class="text-xl font-semibold text-[var(--text-primary)]">
               {{ title }}
             </h2>
 
             <button
               type="button"
-              class="flex h-9 w-9 items-center justify-center rounded-full border border-white/8 text-zinc-400 hover:bg-white/5 hover:text-white"
+              class="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-overlay-strong)] hover:text-[var(--text-primary)]"
               @click="emit('close')"
             >
               ✕

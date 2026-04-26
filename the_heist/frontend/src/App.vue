@@ -1,6 +1,9 @@
 <script setup>
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
+import { useThemeStore } from './stores/ThemeStore.js'
+
+const themeStore = useThemeStore()
 </script>
 
 <template>
@@ -11,7 +14,7 @@ import 'vue-sonner/style.css'
   </RouterView>
 
   <Toaster
-    theme="dark"
+    :theme="themeStore.theme"
     position="bottom-right"
     rich-colors
     close-button
